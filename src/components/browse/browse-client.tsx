@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
-import { getGameIcon } from "@/components/game-icon";
+import { GameIcon } from "@/components/game-icon";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -122,18 +122,15 @@ export function BrowseClient({
                 </p>
                 <div className="flex flex-col gap-1">
                   <GameChip active={game === "All"} onClick={() => setGame("All")} label="All games" />
-                  {games.map((g) => {
-                    const Icon = getGameIcon(g);
-                    return (
-                      <GameChip
-                        key={g}
-                        active={game === g}
-                        onClick={() => setGame(g as Game)}
-                        label={g}
-                        icon={<Icon className="h-3.5 w-3.5" aria-hidden />}
-                      />
-                    );
-                  })}
+                  {games.map((g) => (
+                    <GameChip
+                      key={g}
+                      active={game === g}
+                      onClick={() => setGame(g as Game)}
+                      label={g}
+                      icon={<GameIcon game={g} className="h-4 w-4 rounded-[4px]" />}
+                    />
+                  ))}
                 </div>
               </div>
 

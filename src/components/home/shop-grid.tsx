@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Search, SlidersHorizontal, X, Package } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
-import { getGameIcon } from "@/components/game-icon";
+import { GameIcon } from "@/components/game-icon";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -63,19 +63,16 @@ export function ShopGrid({ products }: { products: Product[] }) {
       <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
           <GameChip active={game === "All"} onClick={() => setGame("All")} label="All" count={products.length} />
-          {games.map((g) => {
-            const Icon = getGameIcon(g);
-            return (
-              <GameChip
-                key={g}
-                active={game === g}
-                onClick={() => setGame(g)}
-                label={g}
-                icon={<Icon className="h-3.5 w-3.5" aria-hidden />}
-                count={counts[g] ?? 0}
-              />
-            );
-          })}
+          {games.map((g) => (
+            <GameChip
+              key={g}
+              active={game === g}
+              onClick={() => setGame(g)}
+              label={g}
+              icon={<GameIcon game={g} className="h-4 w-4 rounded-[4px]" />}
+              count={counts[g] ?? 0}
+            />
+          ))}
         </div>
         <div className="flex items-center gap-2">
           <div className="relative w-full sm:w-64">

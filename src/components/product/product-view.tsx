@@ -4,18 +4,18 @@ import { ProductCover } from "@/components/product-cover";
 import { ProductCard } from "@/components/product-card";
 import { Badge } from "@/components/ui/badge";
 import { ProductPurchase } from "@/components/product/product-purchase";
-import { products } from "@/lib/products";
 import { formatCount, formatPrice } from "@/lib/format";
 import { discord } from "@/config/site";
 import { gameMeta } from "@/components/game-icon";
 import type { Product } from "@/lib/types";
 
-export function ProductView({ product }: { product: Product }) {
-  const related = products
-    .filter((p) => p.id !== product.id && p.game === product.game)
-    .concat(products.filter((p) => p.id !== product.id && p.game !== product.game))
-    .slice(0, 4);
-
+export function ProductView({
+  product,
+  related,
+}: {
+  product: Product;
+  related: Product[];
+}) {
   return (
     <article className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
@@ -36,7 +36,6 @@ export function ProductView({ product }: { product: Product }) {
           <div className="absolute left-4 top-4 flex flex-wrap gap-1.5">
             {product.rarity && <Badge variant="default">{product.rarity}</Badge>}
             {product.featured && <Badge variant="accent">Featured</Badge>}
-            {product.local && <Badge variant="muted">Your listing</Badge>}
           </div>
         </div>
 
@@ -101,22 +100,24 @@ export function ProductView({ product }: { product: Product }) {
         </div>
       </div>
 
-      <section className="mt-16">
-        <div className="mb-4 flex items-baseline justify-between">
-          <h2 className="font-display text-2xl">More like this</h2>
-          <Link href={`/browse?game=${encodeURIComponent(product.game)}`} className="text-sm font-semibold text-primary hover:underline">
-            More in {product.game}
-          </Link>
-        </div>
-        <p className="mb-6 text-sm text-muted-foreground">
-          {product.title} · {formatPrice(product.price)} · {product.game} item.
-        </p>
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {related.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
-      </section>
+      {related.length > 0 && (
+        <section className="mt-16">
+          <div className="mb-4 flex items-baseline justify-between">
+            <h2 className="font-display text-2xl">More like this</h2>
+            <Link href={`/browse?game=${encodeURIComponent(product.game)}`} className="text-sm font-semibold text-primary hover:underline">
+              More in {product.game}
+            </Link>
+          </div>
+          <p className="mb-6 text-sm text-muted-foreground">
+            {product.title} · {formatPrice(product.price)} · {product.game} item.
+          </p>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {related.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </section>
+      )}
     </article>
   );
 }

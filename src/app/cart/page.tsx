@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, ShieldCheck, Package } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, ShieldCheck, Package, RefreshCw } from "lucide-react";
 import { ProductCover } from "@/components/product-cover";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +11,20 @@ import { formatPrice } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 export default function CartPage() {
-  const { items, setQty, remove, subtotal, count } = useCart();
+  const { items, setQty, remove, subtotal, count, sync } = useCart();
+  const [adjusted, setAdjusted] = useState(false);
+
+  // Reconcile against the live catalog on mount: deleted/sold-out items are
+  // dropped and quantities clamped to current stock.
+  useEffect(() => {
+    let alive = true;
+    void sync().then((changed) => {
+      if (alive && changed) setAdjusted(true);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [sync]);
 
   if (count === 0) {
     return (
@@ -32,9 +46,17 @@ export default function CartPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <h1 className="mb-8 font-display text-3xl sm:text-4xl">
+      <h1 className="mb-4 font-display text-3xl sm:text-4xl">
         Cart <span className="text-muted-foreground">({count})</span>
       </h1>
+
+      {adjusted && (
+        <p className="mb-6 flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm text-amber-300" role="status">
+          <RefreshCw className="h-4 w-4 shrink-0" />
+          Your cart was updated to match current availability — some items changed
+          quantity or are no longer in stock.
+        </p>
+      )}
 
       <div className="grid gap-8 lg:grid-cols-[1fr_340px]">
         <section className="space-y-3">
@@ -62,28 +84,36 @@ export default function CartPage() {
                   </span>
                   {item.product.rarity && <Badge variant="muted">{item.product.rarity}</Badge>}
                 </div>
-                <p className="mt-1 text-sm text-accent">{formatPrice(item.product.price)} each</p>
+                <p className="mt-1 text-sm text-secondary">{formatPrice(item.product.price)} each</p>
               </div>
 
               <div className="flex items-center justify-between gap-4 sm:flex-col sm:items-end">
-                <div className="inline-flex items-center rounded-xl border border-border bg-surface">
-                  <button
-                    type="button"
-                    aria-label="Decrease quantity"
-                    onClick={() => setQty(item.product.id, item.qty - 1)}
-                    className="flex h-10 w-10 items-center justify-center text-muted-foreground hover:text-foreground"
-                  >
-                    <Minus className="h-4 w-4" />
-                  </button>
-                  <span className="w-8 text-center text-sm font-semibold">{item.qty}</span>
-                  <button
-                    type="button"
-                    aria-label="Increase quantity"
-                    onClick={() => setQty(item.product.id, item.qty + 1)}
-                    className="flex h-10 w-10 items-center justify-center text-muted-foreground hover:text-foreground"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
+                <div className="flex flex-col items-end gap-1">
+                  <div className="inline-flex items-center rounded-xl border border-border bg-surface">
+                    <button
+                      type="button"
+                      aria-label="Decrease quantity"
+                      onClick={() => setQty(item.product.id, item.qty - 1)}
+                      className="flex h-10 w-10 items-center justify-center text-muted-foreground hover:text-foreground"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <span className="w-8 text-center text-sm font-semibold">{item.qty}</span>
+                    <button
+                      type="button"
+                      aria-label="Increase quantity"
+                      disabled={item.qty >= item.product.stock}
+                      onClick={() => setQty(item.product.id, item.qty + 1)}
+                      className="flex h-10 w-10 items-center justify-center text-muted-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                  {item.qty >= item.product.stock && (
+                    <span className="text-[11px] text-muted-foreground">
+                      Max stock ({item.product.stock})
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-display text-lg">{formatPrice(item.product.price * item.qty)}</span>
@@ -111,7 +141,7 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Owner fee</dt>
-                <dd className="text-accent">$0.00</dd>
+                <dd className="text-success">$0.00</dd>
               </div>
               <div className="flex justify-between border-t border-border pt-3 font-display text-base">
                 <dt>Total</dt>

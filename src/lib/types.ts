@@ -20,3 +20,23 @@ export interface Product {
   featured?: boolean;
   local?: boolean;
 }
+
+export type OrderStatus = "awaiting-payment" | "fulfilled" | "cancelled";
+
+export interface OrderLine {
+  productId: string;
+  title: string;
+  game: Game;
+  unitPrice: number;
+  qty: number;
+}
+
+export interface Order {
+  id: string;
+  createdAt: string;
+  status: OrderStatus;
+  asset: "usdt" | "ltc";
+  assetLabel: string;
+  total: number;
+  lines: OrderLine[];
+}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { BrowseClient } from "@/components/browse/browse-client";
+import { AutoRefresh } from "@/components/auto-refresh";
 import { getAllProducts } from "@/lib/server-store";
 
 export const dynamic = "force-dynamic";
@@ -20,5 +21,10 @@ export default async function BrowsePage({
   const game = typeof sp.game === "string" ? sp.game : "";
   const all = await getAllProducts();
 
-  return <BrowseClient key={`${q}|${game}`} products={all} initialQ={q} initialGame={game} />;
+  return (
+    <>
+      <AutoRefresh />
+      <BrowseClient key={`${q}|${game}`} products={all} initialQ={q} initialGame={game} />
+    </>
+  );
 }

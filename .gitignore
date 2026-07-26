@@ -47,3 +47,6 @@ next-env.d.ts
 # Local archives and logs
 *.rar
 .dev.log
+
+# local Claude Code config (contains local test commands)
+/.claude/

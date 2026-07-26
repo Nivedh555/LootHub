@@ -36,8 +36,7 @@ export function Footer() {
           title="Marketplace"
           links={[
             { label: "Browse items", href: "/browse" },
-            { label: "Featured", href: "/#featured" },
-            { label: "Games", href: "/#games" },
+            { label: "Shop", href: "/#shop" },
             { label: "Cart", href: "/cart" },
           ]}
         />
@@ -62,7 +61,11 @@ export function Footer() {
 
       <div className="border-t border-border">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-6 text-xs text-muted-foreground sm:flex-row sm:px-6">
-          <p>&copy; {new Date().getFullYear()} LootHub. Owner-run demo store.</p>
+          <p>
+            &copy; {new Date().getFullYear()} LootHub &ndash; All rights reserved.
+            <span className="mx-2 text-muted-foreground/50">|</span>
+            Made with <span className="text-primary">&hearts;</span> for the Roblox &amp; Minecraft community.
+          </p>
           <p className="inline-flex items-center gap-1.5">
             <Lock className="h-3.5 w-3.5" /> Only the owner can list items · Crypto: USDT BEP20 &amp; LTC
           </p>

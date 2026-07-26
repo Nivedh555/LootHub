@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ShoppingBag, Check } from "lucide-react";
+import { ShoppingBag, Check, Ban } from "lucide-react";
 import { Button } from "./ui/button";
 import { useCart } from "@/lib/cart-context";
 import type { Product } from "@/lib/types";
@@ -22,22 +22,35 @@ export function AddToCart({
   variant?: Variant;
   label?: string;
 }) {
-  const { add } = useCart();
-  const [added, setAdded] = useState(false);
+  const { add, items } = useCart();
+  const [state, setState] = useState<"idle" | "added" | "maxed">("idle");
+
+  const inCart = items.find((i) => i.product.id === product.id)?.qty ?? 0;
+  const outOfStock = product.stock <= 0;
+  const maxed = !outOfStock && inCart >= product.stock;
+
+  if (outOfStock) {
+    return (
+      <Button size={size} variant="outline" disabled aria-label={`${product.title} is out of stock`}>
+        <Ban className="h-4 w-4" /> Out of stock
+      </Button>
+    );
+  }
 
   return (
     <Button
       size={size}
       variant={variant}
-      aria-label={`Add ${product.title} to cart`}
+      disabled={maxed}
+      aria-label={maxed ? `Maximum stock of ${product.title} already in cart` : `Add ${product.title} to cart`}
       onClick={() => {
-        add(product, qty);
-        setAdded(true);
-        window.setTimeout(() => setAdded(false), 1500);
+        const ok = add(product, qty);
+        setState(ok ? "added" : "maxed");
+        window.setTimeout(() => setState("idle"), 1500);
       }}
     >
-      {added ? <Check className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" />}
-      {added ? "Added" : label}
+      {state === "added" ? <Check className="h-4 w-4" /> : <ShoppingBag className="h-4 w-4" />}
+      {maxed ? "Max in cart" : state === "added" ? "Added" : label}
     </Button>
   );
 }

@@ -1,18 +1,30 @@
+import Image from "next/image";
 import { gameMeta } from "@/config/games";
 import type { Game } from "@/lib/types";
-import { PawPrint, Ghost, Sprout, Carrot, Brain, Server, Package, type LucideIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-const GAME_ICONS: Record<Game, LucideIcon> = {
-  "Adopt Me!": PawPrint,
-  "Murder Mystery 2": Ghost,
-  "Grow a Garden": Sprout,
-  "Grow a Garden 2": Carrot,
-  "Steal a Brainrot": Brain,
-  "Donut SMP": Server,
-};
-
-export function getGameIcon(game: Game): LucideIcon {
-  return GAME_ICONS[game] ?? Package;
+/**
+ * Official game icon (Roblox game icons / Donut SMP server icon) served
+ * from public/games/. Sized via className (e.g. "h-6 w-6").
+ */
+export function GameIcon({
+  game,
+  className,
+}: {
+  game: Game;
+  className?: string;
+}) {
+  const meta = gameMeta[game];
+  return (
+    <Image
+      src={meta.icon}
+      alt={`${game} icon`}
+      width={64}
+      height={64}
+      unoptimized
+      className={cn("rounded-md object-cover", className)}
+    />
+  );
 }
 
 export { gameMeta };

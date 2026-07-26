@@ -3,14 +3,14 @@ import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const palettes: [string, string][] = [
-  ["#7c3aed", "#16a34a"],
-  ["#22d3ee", "#7c3aed"],
+  ["#7c3aed", "#4c1d95"],
+  ["#a78bfa", "#7c3aed"],
   ["#f59e0b", "#dc2626"],
-  ["#a78bfa", "#22d3ee"],
-  ["#16a34a", "#22d3ee"],
+  ["#8b5cf6", "#ec4899"],
+  ["#6d28d9", "#a78bfa"],
   ["#ec4899", "#7c3aed"],
   ["#f43f5e", "#f59e0b"],
-  ["#38bdf8", "#a78bfa"],
+  ["#c4b5fd", "#6d28d9"],
 ];
 
 function hash(str: string): number {
@@ -110,14 +110,14 @@ export function ProductCover({
         <text
           x="24"
           y="32"
-          fontFamily="'Russo One', sans-serif"
+          fontFamily="'Orbitron', sans-serif"
           fontSize="11"
           fill="#f5f0ff"
           letterSpacing="1.4"
         >
           {product.game.toUpperCase()}
         </text>
-        <text x="20" y="262" fontFamily="'Russo One', sans-serif" fontSize="20" fill="#ffffff">
+        <text x="20" y="262" fontFamily="'Orbitron', sans-serif" fontSize="20" fill="#ffffff">
           {title}
         </text>
         {product.rarity && (
