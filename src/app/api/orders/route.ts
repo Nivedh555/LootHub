@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { isAdminRequest } from "@/lib/auth";
 import { createOrder, getAllOrders } from "@/lib/server-store";
 import { cryptoAssets } from "@/config/payments";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,15 @@ export async function GET() {
 
 /** Public: place an order from the checkout page. */
 export async function POST(request: Request) {
+  // Stock-locking guard: unpaid orders hold stock, so cap order creation
+  // at 5 per IP per 10 minutes to stop a griefer from locking the store.
+  if (!rateLimit(`order:${clientIp(request)}`, 5, 10 * 60_000)) {
+    return NextResponse.json(
+      { error: "Too many orders. Try again in a few minutes." },
+      { status: 429 },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();

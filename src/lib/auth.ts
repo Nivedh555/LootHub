@@ -4,16 +4,25 @@ import { cookies } from "next/headers";
 
 /**
  * Owner passcode. Read server-side only — it is never sent to the browser.
- * Set ADMIN_PASSCODE in .env.local. (NEXT_PUBLIC_ADMIN_PASSCODE is accepted
- * for backwards compatibility but ADMIN_PASSCODE is preferred.)
+ * Set ADMIN_PASSCODE in .env.local. (NEXT_PUBLIC_ vars are compiled into the
+ * client bundle, so a NEXT_PUBLIC_ passcode would be readable by anyone —
+ * deliberately not supported.)
  */
-const envPasscode =
-  process.env.ADMIN_PASSCODE ?? process.env.NEXT_PUBLIC_ADMIN_PASSCODE;
+const envPasscode = process.env.ADMIN_PASSCODE;
 const FALLBACK_PASSCODE = "loothub-owner";
+
+const isProd = process.env.NODE_ENV === "production";
 
 export const adminPasscode =
   envPasscode && envPasscode.length > 0 ? envPasscode : FALLBACK_PASSCODE;
 export const adminIsCustom = Boolean(envPasscode && envPasscode.length > 0);
+
+/**
+ * In production the well-known demo passcode is refused outright — the
+ * fallback exists only so local dev works with zero setup. Deploying
+ * without ADMIN_PASSCODE set means the admin panel cannot be logged into.
+ */
+export const adminLoginEnabled = adminIsCustom || !isProd;
 
 /** Secret for signing session tokens. Falls back to a passcode-derived key. */
 const secret =
@@ -70,7 +79,9 @@ export async function setAdminCookie(): Promise<void> {
   const store = await cookies();
   store.set(COOKIE_NAME, token, {
     httpOnly: true,
-    sameSite: "lax",
+    // Strict: the admin cookie is never sent on any cross-site request,
+    // which neutralises CSRF against the owner-only API routes.
+    sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     path: "/",
     maxAge,

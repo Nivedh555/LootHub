@@ -87,10 +87,14 @@ export async function removeProduct(id: string): Promise<void> {
   });
 }
 
+// Raster formats only — must stay in sync with the MIME allow-list in
+// src/app/uploads/[file]/route.ts. SVG excluded (script-capable).
+const ALLOWED_IMAGE_EXTS = new Set(["png", "jpg", "jpeg", "gif", "webp", "avif"]);
+
 export async function saveUploadedImage(id: string, file: File): Promise<string> {
   await fs.mkdir(UPLOADS_DIR, { recursive: true });
   const rawExt = (file.name.split(".").pop() ?? "png").toLowerCase();
-  const ext = /^[a-z0-9]{1,5}$/.test(rawExt) ? rawExt : "png";
+  const ext = ALLOWED_IMAGE_EXTS.has(rawExt) ? rawExt : "png";
   const filename = `${id}.${ext}`;
   const filePath = path.join(UPLOADS_DIR, filename);
   const buffer = Buffer.from(await file.arrayBuffer());

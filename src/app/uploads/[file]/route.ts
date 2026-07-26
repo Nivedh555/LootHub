@@ -4,6 +4,8 @@ import { UPLOADS_DIR } from "@/lib/server-store";
 
 export const dynamic = "force-dynamic";
 
+// Raster formats only — SVG is deliberately excluded because it can embed
+// scripts and would be a stored-XSS vector when served same-origin.
 const MIME: Record<string, string> = {
   png: "image/png",
   jpg: "image/jpeg",
@@ -11,7 +13,6 @@ const MIME: Record<string, string> = {
   gif: "image/gif",
   webp: "image/webp",
   avif: "image/avif",
-  svg: "image/svg+xml",
 };
 
 /**
@@ -49,6 +50,9 @@ export async function GET(
           "Content-Type": type,
           "Content-Length": String(buffer.byteLength),
           "Cache-Control": "public, max-age=31536000, immutable",
+          // Defence-in-depth: never sniff-execute an uploaded file.
+          "X-Content-Type-Options": "nosniff",
+          "Content-Security-Policy": "default-src 'none'",
         },
       });
     } catch {
