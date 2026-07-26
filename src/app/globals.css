@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Russo+One&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-background: #0b0614;
+  --color-surface: #140b22;
+  --color-surface-2: #1b1130;
+  --color-card: #1b1130;
+  --color-foreground: #f5f0ff;
+  --color-muted: #241838;
+  --color-muted-foreground: #b9a9d6;
+  --color-border: #2e2245;
+  --color-input: #2a2040;
+  --color-primary: #7c3aed;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #a78bfa;
+  --color-secondary-foreground: #1b1130;
+  --color-accent: #16a34a;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+  --color-ring: #7c3aed;
+
+  --font-sans: "Chakra Petch", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Russo One", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    color-scheme: dark;
+    scrollbar-color: var(--color-primary) transparent;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    background-image:
+      radial-gradient(60rem 60rem at 80% -10%, rgba(124, 58, 237, 0.18), transparent 60%),
+      radial-gradient(50rem 50rem at 0% 0%, rgba(22, 163, 74, 0.08), transparent 55%);
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4, h5 {
+    font-family: var(--font-display);
+    letter-spacing: 0.01em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--color-primary);
+    color: #fff;
+  }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
+}
+
+@layer utilities {
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, rgba(167, 139, 250, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(167, 139, 250, 0.08) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+  .text-glow {
+    text-shadow: 0 0 24px rgba(124, 58, 237, 0.55);
+  }
+
+  /* Aurora: two drifting blurred orbs behind the hero content */
+  .aurora {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+  }
+  .aurora::before,
+  .aurora::after {
+    content: "";
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(64px);
+    will-change: transform;
+  }
+  .aurora::before {
+    width: 34rem;
+    height: 34rem;
+    left: -12%;
+    top: -40%;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.45), transparent 60%);
+    animation: aurora-1 18s ease-in-out infinite alternate;
+  }
+  .aurora::after {
+    width: 30rem;
+    height: 30rem;
+    right: -12%;
+    top: -10%;
+    background: radial-gradient(circle, rgba(22, 163, 74, 0.32), transparent 60%);
+    animation: aurora-2 23s ease-in-out infinite alternate;
+  }
+
+  /* Beams: slow-rotating conic light spokes, masked to fade at center + edges */
+  .beams {
+    position: absolute;
+    inset: -40%;
+    pointer-events: none;
+    background: conic-gradient(
+      from 0deg at 50% 50%,
+      transparent 0deg,
+      rgba(124, 58, 237, 0.16) 10deg,
+      transparent 20deg,
+      transparent 100deg,
+      rgba(167, 139, 250, 0.12) 110deg,
+      transparent 120deg,
+      transparent 190deg,
+      rgba(22, 163, 74, 0.14) 200deg,
+      transparent 210deg,
+      transparent 280deg,
+      rgba(124, 58, 237, 0.12) 290deg,
+      transparent 300deg,
+      transparent 360deg
+    );
+    animation: beams-spin 48s linear infinite;
+    mask: radial-gradient(closest-side, transparent 0%, #000 35%, #000 75%, transparent 100%);
+    -webkit-mask: radial-gradient(closest-side, transparent 0%, #000 35%, #000 75%, transparent 100%);
+  }
+
+  /* Reviews marquee */
+  .marquee {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    mask: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+    -webkit-mask: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee 50s linear infinite;
+  }
+  .marquee:hover .marquee-track {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes aurora-1 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(4rem, 3rem) scale(1.08); }
+}
+@keyframes aurora-2 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(-3rem, 2.5rem) scale(1.1); }
+}
+@keyframes beams-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .aurora::before,
+  .aurora::after,
+  .beams,
+  .marquee-track {
+    animation: none !important;
+  }
+}
