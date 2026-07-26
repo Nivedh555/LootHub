@@ -2,19 +2,26 @@ import "server-only";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
+import { db, hasDb } from "./db";
 import type { Order, Product } from "./types";
+
+/**
+ * Storage layer. With DATABASE_URL set (production / Vercel) everything
+ * lives in Postgres — products, orders, and uploaded cover images.
+ * Without it (local dev) the original JSON-file store under data/ is used.
+ */
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const STORE_FILE = path.join(DATA_DIR, "store.json");
 const ORDERS_FILE = path.join(DATA_DIR, "orders.json");
-// Uploads live under data/ (not public/) because `next start` only serves
-// public/ files that existed at build time — runtime uploads there 404.
-// They are served by the dynamic route handler at src/app/uploads/[file]/route.ts.
+
+// Local-dev uploads dir. In production uploads are stored in Postgres.
 export const UPLOADS_DIR = path.join(process.cwd(), "data", "uploads");
 
 /**
  * Serialize all read-modify-write cycles through one promise chain so
- * concurrent requests can't clobber each other's writes.
+ * concurrent requests can't clobber each other's writes (file store only —
+ * Postgres uses transactions instead).
  */
 let queue: Promise<unknown> = Promise.resolve();
 function enqueue<T>(job: () => Promise<T>): Promise<T> {
@@ -43,14 +50,32 @@ async function writeJson(file: string, value: unknown): Promise<void> {
 // ---------- Products ----------
 
 export async function getAllProducts(): Promise<Product[]> {
+  if (hasDb) {
+    const pool = await db();
+    const res = await pool.query("SELECT data FROM products ORDER BY pos DESC");
+    return res.rows.map((r) => r.data as Product);
+  }
   return readJson<Product>(STORE_FILE);
 }
 
 export async function findProductById(id: string): Promise<Product | undefined> {
-  return (await getAllProducts()).find((p) => p.id === id);
+  if (hasDb) {
+    const pool = await db();
+    const res = await pool.query("SELECT data FROM products WHERE id = $1", [id]);
+    return (res.rows[0]?.data as Product) ?? undefined;
+  }
+  return (await readJson<Product>(STORE_FILE)).find((p) => p.id === id);
 }
 
 export async function addProduct(input: Product): Promise<Product> {
+  if (hasDb) {
+    const pool = await db();
+    await pool.query("INSERT INTO products (id, data) VALUES ($1, $2)", [
+      input.id,
+      JSON.stringify(input),
+    ]);
+    return input;
+  }
   return enqueue(async () => {
     const arr = await readJson<Product>(STORE_FILE);
     await writeJson(STORE_FILE, [input, ...arr]);
@@ -62,6 +87,14 @@ export async function updateProduct(
   id: string,
   patch: Partial<Product>,
 ): Promise<Product | undefined> {
+  if (hasDb) {
+    const pool = await db();
+    const res = await pool.query(
+      "UPDATE products SET data = data || $2::jsonb WHERE id = $1 RETURNING data",
+      [id, JSON.stringify({ ...patch, id })],
+    );
+    return (res.rows[0]?.data as Product) ?? undefined;
+  }
   return enqueue(async () => {
     const arr = await readJson<Product>(STORE_FILE);
     const idx = arr.findIndex((p) => p.id === id);
@@ -74,6 +107,20 @@ export async function updateProduct(
 }
 
 export async function removeProduct(id: string): Promise<void> {
+  if (hasDb) {
+    const pool = await db();
+    const res = await pool.query(
+      "DELETE FROM products WHERE id = $1 RETURNING data",
+      [id],
+    );
+    const image = (res.rows[0]?.data as Product | undefined)?.image;
+    if (image?.startsWith("/uploads/")) {
+      await pool.query("DELETE FROM uploads WHERE filename = $1", [
+        path.basename(image),
+      ]);
+    }
+    return;
+  }
   return enqueue(async () => {
     const arr = await readJson<Product>(STORE_FILE);
     const target = arr.find((p) => p.id === id);
@@ -87,37 +134,161 @@ export async function removeProduct(id: string): Promise<void> {
   });
 }
 
+// ---------- Uploaded cover images ----------
+
 // Raster formats only — must stay in sync with the MIME allow-list in
 // src/app/uploads/[file]/route.ts. SVG excluded (script-capable).
 const ALLOWED_IMAGE_EXTS = new Set(["png", "jpg", "jpeg", "gif", "webp", "avif"]);
 
+const EXT_MIME: Record<string, string> = {
+  png: "image/png",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  gif: "image/gif",
+  webp: "image/webp",
+  avif: "image/avif",
+};
+
 export async function saveUploadedImage(id: string, file: File): Promise<string> {
-  await fs.mkdir(UPLOADS_DIR, { recursive: true });
   const rawExt = (file.name.split(".").pop() ?? "png").toLowerCase();
   const ext = ALLOWED_IMAGE_EXTS.has(rawExt) ? rawExt : "png";
   const filename = `${id}.${ext}`;
-  const filePath = path.join(UPLOADS_DIR, filename);
   const buffer = Buffer.from(await file.arrayBuffer());
-  await fs.writeFile(filePath, buffer);
+
+  if (hasDb) {
+    const pool = await db();
+    await pool.query(
+      `INSERT INTO uploads (filename, content_type, bytes) VALUES ($1, $2, $3)
+       ON CONFLICT (filename) DO UPDATE SET content_type = $2, bytes = $3`,
+      [filename, EXT_MIME[ext], buffer],
+    );
+  } else {
+    await fs.mkdir(UPLOADS_DIR, { recursive: true });
+    await fs.writeFile(path.join(UPLOADS_DIR, filename), buffer);
+  }
   return `/uploads/${filename}`;
+}
+
+/** Read an uploaded cover for serving. Returns undefined when missing. */
+export async function getUploadedImage(
+  filename: string,
+): Promise<{ bytes: Buffer; contentType: string } | undefined> {
+  if (hasDb) {
+    const pool = await db();
+    const res = await pool.query(
+      "SELECT content_type, bytes FROM uploads WHERE filename = $1",
+      [filename],
+    );
+    const row = res.rows[0];
+    if (!row) return undefined;
+    return { bytes: row.bytes as Buffer, contentType: row.content_type as string };
+  }
+  const ext = filename.split(".").pop()!.toLowerCase();
+  const contentType = EXT_MIME[ext];
+  if (!contentType) return undefined;
+  const candidates = [
+    path.join(UPLOADS_DIR, filename),
+    // Legacy location: covers uploaded while files were written to public/.
+    path.join(process.cwd(), "public", "uploads", filename),
+  ];
+  for (const filePath of candidates) {
+    try {
+      return { bytes: await fs.readFile(filePath), contentType };
+    } catch {
+      // try next candidate
+    }
+  }
+  return undefined;
 }
 
 // ---------- Orders ----------
 
 export async function getAllOrders(): Promise<Order[]> {
+  if (hasDb) {
+    const pool = await db();
+    const res = await pool.query("SELECT data FROM orders ORDER BY pos DESC");
+    return res.rows.map((r) => r.data as Order);
+  }
   return readJson<Order>(ORDERS_FILE);
+}
+
+function buildOrder(lines: Order["lines"], input: {
+  asset: Order["asset"];
+  assetLabel: string;
+}): Order {
+  return {
+    id: `LH-${Date.now().toString(36).toUpperCase()}-${randomUUID().slice(0, 4).toUpperCase()}`,
+    createdAt: new Date().toISOString(),
+    status: "awaiting-payment",
+    asset: input.asset,
+    assetLabel: input.assetLabel,
+    total: lines.reduce((s, l) => s + l.unitPrice * l.qty, 0),
+    lines,
+  };
 }
 
 /**
  * Create an order from requested (productId, qty) pairs. Validates against
- * live products, decrements stock, and records the order — all inside the
- * write queue so stock can't go negative under concurrent checkouts.
+ * live products, decrements stock, and records the order — atomically.
+ * File store: via the write queue. Postgres: via a transaction with row
+ * locks so stock can't go negative under concurrent checkouts.
  */
 export async function createOrder(input: {
   asset: Order["asset"];
   assetLabel: string;
   items: { productId: string; qty: number }[];
 }): Promise<{ order: Order } | { error: string }> {
+  if (hasDb) {
+    const pool = await db();
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+      const lines: Order["lines"] = [];
+      for (const { productId, qty } of input.items) {
+        if (qty < 1 || !Number.isInteger(qty)) {
+          await client.query("ROLLBACK");
+          return { error: "Invalid quantity." };
+        }
+        const res = await client.query(
+          "SELECT data FROM products WHERE id = $1 FOR UPDATE",
+          [productId],
+        );
+        const product = res.rows[0]?.data as Product | undefined;
+        if (!product) {
+          await client.query("ROLLBACK");
+          return { error: "Item no longer exists." };
+        }
+        if (product.stock < qty) {
+          await client.query("ROLLBACK");
+          return { error: `Only ${product.stock} of "${product.title}" left in stock.` };
+        }
+        await client.query(
+          "UPDATE products SET data = jsonb_set(data, '{stock}', to_jsonb($2::int)) WHERE id = $1",
+          [productId, product.stock - qty],
+        );
+        lines.push({
+          productId,
+          title: product.title,
+          game: product.game,
+          unitPrice: product.price,
+          qty,
+        });
+      }
+      const order = buildOrder(lines, input);
+      await client.query("INSERT INTO orders (id, data) VALUES ($1, $2)", [
+        order.id,
+        JSON.stringify(order),
+      ]);
+      await client.query("COMMIT");
+      return { order };
+    } catch (err) {
+      await client.query("ROLLBACK").catch(() => undefined);
+      throw err;
+    } finally {
+      client.release();
+    }
+  }
+
   return enqueue(async () => {
     const products = await readJson<Product>(STORE_FILE);
     const lines: Order["lines"] = [];
@@ -146,16 +317,7 @@ export async function createOrder(input: {
       product.stock -= line.qty;
     }
 
-    const order: Order = {
-      id: `LH-${Date.now().toString(36).toUpperCase()}-${randomUUID().slice(0, 4).toUpperCase()}`,
-      createdAt: new Date().toISOString(),
-      status: "awaiting-payment",
-      asset: input.asset,
-      assetLabel: input.assetLabel,
-      total: lines.reduce((s, l) => s + l.unitPrice * l.qty, 0),
-      lines,
-    };
-
+    const order = buildOrder(lines, input);
     const orders = await readJson<Order>(ORDERS_FILE);
     await writeJson(STORE_FILE, products);
     await writeJson(ORDERS_FILE, [order, ...orders]);
@@ -165,6 +327,19 @@ export async function createOrder(input: {
 
 /** Add each order line's qty back onto (or off of) live product stock. */
 async function adjustStockForOrder(order: Order, direction: 1 | -1): Promise<void> {
+  if (hasDb) {
+    const pool = await db();
+    for (const line of order.lines) {
+      await pool.query(
+        `UPDATE products
+         SET data = jsonb_set(data, '{stock}',
+           to_jsonb(GREATEST(0, (data->>'stock')::int + $2::int)))
+         WHERE id = $1`,
+        [line.productId, direction * line.qty],
+      );
+    }
+    return;
+  }
   const products = await readJson<Product>(STORE_FILE);
   let touched = false;
   for (const line of order.lines) {
@@ -180,6 +355,29 @@ export async function updateOrderStatus(
   id: string,
   status: Order["status"],
 ): Promise<Order | undefined> {
+  if (hasDb) {
+    const pool = await db();
+    const res = await pool.query("SELECT data FROM orders WHERE id = $1", [id]);
+    const prev = res.rows[0]?.data as Order | undefined;
+    if (!prev) return undefined;
+    if (prev.status === status) return prev;
+
+    // Stock is held while an order is awaiting payment or fulfilled.
+    // Cancelling releases it back to the store; reactivating re-holds it.
+    if (status === "cancelled" && prev.status !== "cancelled") {
+      await adjustStockForOrder(prev, 1);
+    } else if (prev.status === "cancelled" && status !== "cancelled") {
+      await adjustStockForOrder(prev, -1);
+    }
+
+    const next = { ...prev, status };
+    await pool.query("UPDATE orders SET data = $2 WHERE id = $1", [
+      id,
+      JSON.stringify(next),
+    ]);
+    return next;
+  }
+
   return enqueue(async () => {
     const orders = await readJson<Order>(ORDERS_FILE);
     const idx = orders.findIndex((o) => o.id === id);
@@ -187,8 +385,6 @@ export async function updateOrderStatus(
     const prev = orders[idx];
     if (prev.status === status) return prev;
 
-    // Stock is held while an order is awaiting payment or fulfilled.
-    // Cancelling releases it back to the store; reactivating re-holds it.
     if (status === "cancelled" && prev.status !== "cancelled") {
       await adjustStockForOrder(prev, 1);
     } else if (prev.status === "cancelled" && status !== "cancelled") {
@@ -202,11 +398,24 @@ export async function updateOrderStatus(
 }
 
 export async function removeOrder(id: string): Promise<void> {
+  if (hasDb) {
+    const pool = await db();
+    const res = await pool.query(
+      "DELETE FROM orders WHERE id = $1 RETURNING data",
+      [id],
+    );
+    const target = res.rows[0]?.data as Order | undefined;
+    // Deleting an unpaid order releases its held stock. Fulfilled orders
+    // already delivered the items; cancelled orders already released stock.
+    if (target?.status === "awaiting-payment") {
+      await adjustStockForOrder(target, 1);
+    }
+    return;
+  }
+
   return enqueue(async () => {
     const orders = await readJson<Order>(ORDERS_FILE);
     const target = orders.find((o) => o.id === id);
-    // Deleting an unpaid order releases its held stock. Fulfilled orders
-    // already delivered the items; cancelled orders already released stock.
     if (target?.status === "awaiting-payment") {
       await adjustStockForOrder(target, 1);
     }

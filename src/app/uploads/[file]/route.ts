@@ -1,6 +1,4 @@
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import { UPLOADS_DIR } from "@/lib/server-store";
+import { getUploadedImage } from "@/lib/server-store";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +15,8 @@ const MIME: Record<string, string> = {
 
 /**
  * Serves cover images uploaded at runtime. `next start` only serves public/
- * files that existed at build time, so uploads live in data/uploads and are
- * streamed from disk here instead.
+ * files that existed at build time, so uploads live in Postgres (production)
+ * or data/uploads (local dev) and are streamed from here instead.
  */
 export async function GET(
   _request: Request,
@@ -32,33 +30,20 @@ export async function GET(
   }
 
   const ext = file.split(".").pop()!.toLowerCase();
-  const type = MIME[ext];
-  if (!type) return new Response("Not found", { status: 404 });
+  if (!MIME[ext]) return new Response("Not found", { status: 404 });
 
-  const candidates = [
-    path.join(UPLOADS_DIR, file),
-    // Legacy location: covers uploaded while files were written to public/.
-    path.join(process.cwd(), "public", "uploads", file),
-  ];
+  const image = await getUploadedImage(file);
+  if (!image) return new Response("Not found", { status: 404 });
 
-  for (const filePath of candidates) {
-    try {
-      const buffer = await fs.readFile(filePath);
-      return new Response(new Uint8Array(buffer), {
-        status: 200,
-        headers: {
-          "Content-Type": type,
-          "Content-Length": String(buffer.byteLength),
-          "Cache-Control": "public, max-age=31536000, immutable",
-          // Defence-in-depth: never sniff-execute an uploaded file.
-          "X-Content-Type-Options": "nosniff",
-          "Content-Security-Policy": "default-src 'none'",
-        },
-      });
-    } catch {
-      // try next candidate
-    }
-  }
-
-  return new Response("Not found", { status: 404 });
+  return new Response(new Uint8Array(image.bytes), {
+    status: 200,
+    headers: {
+      "Content-Type": image.contentType,
+      "Content-Length": String(image.bytes.byteLength),
+      "Cache-Control": "public, max-age=31536000, immutable",
+      // Defence-in-depth: never sniff-execute an uploaded file.
+      "X-Content-Type-Options": "nosniff",
+      "Content-Security-Policy": "default-src 'none'",
+    },
+  });
 }
