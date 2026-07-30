@@ -19,10 +19,11 @@ import { FeaturedCarousel } from "@/components/home/featured-carousel";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { AmbientBackground } from "@/components/ui/ambient-background";
 import { LootCrateHero } from "@/components/ui/loot-crate-hero";
-import { BlurFade } from "@/components/ui/blur-fade";
+import { Reveal, RevealGroup, RevealBadge } from "@/components/ui/reveal";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { SectionHeading } from "@/components/section-heading";
 import { discord } from "@/config/site";
 import { games, gameMeta } from "@/config/games";
 import { GameIcon } from "@/components/game-icon";
@@ -64,20 +65,26 @@ export default async function HomePage() {
         <AmbientBackground />
         <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-6 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[1fr_360px] lg:gap-4">
           <div>
-            <BlurFade inView>
+            <RevealBadge>
               <Badge className="px-3 py-1 text-xs">
                 <Coins className="h-3.5 w-3.5" /> Crypto checkout · Discord delivery
               </Badge>
-              <h1 className="mt-3 max-w-2xl font-display text-3xl leading-[1.12] text-foreground sm:text-[2.75rem]">
+            </RevealBadge>
+            <h1 className="mt-3 max-w-2xl font-display text-3xl leading-[1.12] text-foreground sm:text-[2.75rem]">
+              <Reveal variant="clip" inView delay={0.05} className="block">
                 In-game items.{" "}
+              </Reveal>
+              <Reveal variant="clip" inView delay={0.13} className="block">
                 <span className="text-glow text-primary">Pay with crypto.</span>
-              </h1>
+              </Reveal>
+            </h1>
+            <Reveal variant="rise" inView delay={0.1}>
               <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
                 Adopt Me!, Murder Mystery 2, Grow a Garden, Steal a Brainrot &amp; Donut
                 SMP. Pay USDT or LTC, then open a Discord ticket to receive your item in-game.
               </p>
-            </BlurFade>
-            <BlurFade inView delay={0.1}>
+            </Reveal>
+            <Reveal variant="rise" inView delay={0.14}>
               <div className="mt-5 hidden max-w-xl sm:block">
                 <HeroSearch />
               </div>
@@ -87,15 +94,15 @@ export default async function HomePage() {
                 </a>
                 <DiscordButton size="lg" />
               </div>
-            </BlurFade>
+            </Reveal>
             {/* stat strip */}
-            <BlurFade inView delay={0.18}>
+            <Reveal variant="rise" inView delay={0.22}>
               <div className="mt-6 grid max-w-md grid-cols-3 divide-x divide-border rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md">
                 <Stat value={all.length} label="Items listed" />
                 <Stat value={totalStock} label="In stock" />
                 <Stat value={games.length} label="Games" />
               </div>
-            </BlurFade>
+            </Reveal>
           </div>
           <div className="hidden justify-center lg:flex">
             <LootCrateHero size={330} />
@@ -106,9 +113,7 @@ export default async function HomePage() {
       {/* Featured carousel */}
       {all.length > 0 && (
         <section id="featured" className="relative mx-auto max-w-7xl px-4 py-10 sm:px-6">
-          <BlurFade inView>
-            <SectionHeading eyebrow="Featured" title="Trending loot" />
-          </BlurFade>
+          <SectionHeading eyebrow="Featured" title="Trending loot" />
           <div className="mt-6">
             <FeaturedCarousel products={all} />
           </div>
@@ -117,14 +122,14 @@ export default async function HomePage() {
 
       {/* Shop */}
       <section id="shop" className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <BlurFade inView>
+        <Reveal inView>
           <div className="mb-2 flex items-end justify-between gap-4">
             <SectionHeading eyebrow="Shop" title="All items" />
             <Link href="/browse" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
               Full browse <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-        </BlurFade>
+        </Reveal>
         {all.length > 0 ? (
           <ShopGrid products={all} />
         ) : (
@@ -143,98 +148,97 @@ export default async function HomePage() {
 
       {/* Games */}
       <section id="games" className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <BlurFade inView>
-          <SectionHeading eyebrow="Games" title="Games supported" />
-        </BlurFade>
-        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:gap-5">
+        <SectionHeading eyebrow="Games" title="Browse by Game" />
+        <RevealGroup
+          inView
+          variant="scale"
+          staggerChildren={0.05}
+          className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:gap-5"
+        >
           {games.map((g) => {
             const meta = gameMeta[g];
             return (
-              <BlurFade key={g} inView>
-                <Link href={`/browse?game=${encodeURIComponent(g)}`} className="group block h-full">
-                  <SpotlightCard
-                    spotlightColor={meta.glow}
-                    borderColor={meta.color}
-                    className="flex h-full flex-col p-5 transition-transform duration-200 group-hover:-translate-y-1"
+              <Link key={g} href={`/browse?game=${encodeURIComponent(g)}`} className="group block h-full">
+                <SpotlightCard
+                  spotlightColor={meta.glow}
+                  borderColor={meta.color}
+                  className="flex h-full flex-col p-5 transition-transform duration-200 group-hover:-translate-y-1"
+                >
+                  <span
+                    className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl"
+                    style={{ boxShadow: `0 0 24px -6px ${meta.glow}` }}
                   >
-                    <span
-                      className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl"
-                      style={{ boxShadow: `0 0 24px -6px ${meta.glow}` }}
-                    >
-                      <GameIcon game={g} className="h-12 w-12 rounded-xl" />
-                    </span>
-                    <h3 className="mt-4 font-display text-sm sm:text-base">{g}</h3>
-                    <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{meta.blurb}</p>
-                    <span
-                      className="mt-3 inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
-                      style={{ backgroundColor: meta.glow, color: meta.color }}
-                    >
-                      {meta.platform}
-                    </span>
-                  </SpotlightCard>
-                </Link>
-              </BlurFade>
+                    <GameIcon game={g} className="h-12 w-12 rounded-xl" />
+                  </span>
+                  <h3 className="mt-4 font-display text-sm sm:text-base">{g}</h3>
+                  <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{meta.blurb}</p>
+                  <span
+                    className="mt-3 inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
+                    style={{ backgroundColor: meta.glow, color: meta.color }}
+                  >
+                    {meta.platform}
+                  </span>
+                </SpotlightCard>
+              </Link>
             );
           })}
-        </div>
+        </RevealGroup>
       </section>
 
       {/* How it works */}
       <section id="how" className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <BlurFade inView>
-          <SectionHeading eyebrow="How it works" title="From cart to in-game in four steps" />
-        </BlurFade>
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <SectionHeading eyebrow="How it works" title="From cart to in-game in four steps" />
+        <RevealGroup
+          inView
+          variant="scale"
+          staggerChildren={0.06}
+          className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
+        >
           {steps.map((s, i) => (
-            <BlurFade key={s.title} inView delay={i * 0.06} className="h-full">
-              <SpotlightCard className="flex h-full flex-col p-6">
-                <div className="flex items-center justify-between">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
-                    <s.icon className="h-5 w-5" aria-hidden />
-                  </span>
-                  <span className="font-display text-2xl font-bold text-primary/30">{String(i + 1).padStart(2, "0")}</span>
-                </div>
-                <h3 className="mt-4 font-display text-base">{s.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{s.body}</p>
-              </SpotlightCard>
-            </BlurFade>
+            <SpotlightCard key={s.title} className="flex h-full flex-col p-6">
+              <div className="flex items-center justify-between">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                  <s.icon className="h-5 w-5" aria-hidden />
+                </span>
+                <span className="font-display text-2xl font-bold text-primary/30">{String(i + 1).padStart(2, "0")}</span>
+              </div>
+              <h3 className="mt-4 font-display text-base">{s.title}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{s.body}</p>
+            </SpotlightCard>
           ))}
-        </div>
+        </RevealGroup>
       </section>
 
       {/* Trust */}
       <section id="trust" className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <BlurFade inView>
-          <SectionHeading eyebrow="Trust" title="Safe, fast, owner-run" />
-        </BlurFade>
-        <div className="mt-6 grid gap-5 sm:grid-cols-3">
+        <SectionHeading eyebrow="Trust" title="Safe, fast, owner-run" />
+        <RevealGroup
+          inView
+          variant="scale"
+          staggerChildren={0.06}
+          className="mt-6 grid gap-5 sm:grid-cols-3"
+        >
           {trustItems.map((t) => (
-            <BlurFade key={t.title} inView className="h-full">
-              <SpotlightCard className="flex h-full flex-col p-6">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
-                  <t.icon className="h-5 w-5" aria-hidden />
-                </span>
-                <h3 className="mt-4 font-display text-base">{t.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{t.body}</p>
-              </SpotlightCard>
-            </BlurFade>
+            <SpotlightCard key={t.title} className="flex h-full flex-col p-6">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                <t.icon className="h-5 w-5" aria-hidden />
+              </span>
+              <h3 className="mt-4 font-display text-base">{t.title}</h3>
+              <p className="mt-1 text-sm text-muted-foreground">{t.body}</p>
+            </SpotlightCard>
           ))}
-        </div>
+        </RevealGroup>
       </section>
 
       {/* FAQ */}
       <section id="faq" className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-        <BlurFade inView>
-          <SectionHeading eyebrow="FAQ" title="Frequently asked questions" />
-        </BlurFade>
-        <BlurFade inView delay={0.08}>
-          <div className="mt-6"><FaqAccordion items={faqItems} /></div>
-        </BlurFade>
+        <SectionHeading eyebrow="FAQ" title="Frequently asked questions" />
+        <div className="mt-6"><FaqAccordion items={faqItems} /></div>
       </section>
 
       {/* Discord CTA */}
       <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
-        <BlurFade inView>
+        <Reveal inView>
           <div className="relative overflow-hidden rounded-3xl border border-[#5865F2]/40 bg-gradient-to-br from-[#5865F2]/25 via-surface to-primary/15 p-8 sm:p-10">
             <AmbientBackground className="opacity-60" />
             <div className="relative flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
@@ -250,7 +254,7 @@ export default async function HomePage() {
               <DiscordButton size="lg" className="shrink-0" />
             </div>
           </div>
-        </BlurFade>
+        </Reveal>
       </section>
     </>
   );
@@ -267,11 +271,4 @@ function Stat({ value, label }: { value: number; label: string }) {
   );
 }
 
-function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
-  return (
-    <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">{eyebrow}</p>
-      <h2 className="mt-1 font-display text-2xl sm:text-3xl">{title}</h2>
-    </div>
-  );
-}
+

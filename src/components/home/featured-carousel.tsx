@@ -10,7 +10,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { BlurFade } from "@/components/ui/blur-fade";
+import { Reveal } from "@/components/ui/reveal";
 import { ProductCard } from "@/components/product-card";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/lib/types";
@@ -71,9 +71,9 @@ export function FeaturedCarousel({ products }: { products: Product[] }) {
         <CarouselContent className="-ml-4">
           {list.map((p, i) => (
             <CarouselItem key={`${tab}-${p.id}`} className="basis-[240px] pl-4 sm:basis-[260px]">
-              <BlurFade delay={reduced ? 0 : i * 0.05} inView>
+              <Reveal delay={reduced ? 0 : i * 0.05} inView variant="scale">
                 <ProductCard product={p} />
-              </BlurFade>
+              </Reveal>
             </CarouselItem>
           ))}
         </CarouselContent>
