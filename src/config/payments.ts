@@ -24,7 +24,7 @@ if (!isBuildPhase && process.env.NODE_ENV === "production") {
 
 // Dev-safe defaults (public receiving addresses — not secrets).
 const safeUsdt = usdtAddress ?? "0xc69e55ce6e8214976ea5925fe94f777f75787e84";
-const safeLtc = ltcAddress ?? "YOUR_LTC_ADDRESS_HERE";
+const safeLtc = ltcAddress ?? "LMFVrVVQbmbhoZ9xczTiRS37kh9eVxFStt";
 
 export const cryptoAssets: CryptoAsset[] = [
   {
