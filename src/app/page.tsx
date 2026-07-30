@@ -18,7 +18,7 @@ import { HeroSearch } from "@/components/home/hero-search";
 import { FaqAccordion, type FaqItem } from "@/components/home/faq-accordion";
 import { FeaturedCarousel } from "@/components/home/featured-carousel";
 import { AmbientGlow } from "@/components/ui/ambient-glow";
-import { LootCrateHero } from "@/components/ui/loot-crate-hero";
+import { CrateLoader } from "@/components/ui/crate/crate-loader";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { Reveal, RevealGroup, RevealBadge } from "@/components/ui/reveal";
 import { NumberTicker } from "@/components/ui/number-ticker";
@@ -105,7 +105,7 @@ export default async function HomePage() {
             </Reveal>
           </div>
           <div className="hidden justify-center lg:flex">
-            <LootCrateHero size={330} />
+            <CrateLoader size={330} />
           </div>
         </div>
       </section>
