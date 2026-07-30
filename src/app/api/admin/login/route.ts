@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   // Refuse the well-known demo passcode in production deployments.
   if (!adminLoginEnabled) {
     return NextResponse.json(
-      { error: "Admin login is disabled: set ADMIN_PASSCODE on the server." },
+      { error: "Forbidden." },
       { status: 403 },
     );
   }

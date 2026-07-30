@@ -2,27 +2,31 @@ import { cn } from "@/lib/utils";
 
 /**
  * Static poster shown while the R3F canvas loads.
- * Same dimensions as the canvas container to prevent layout shift.
+ * With `fill` it stretches to its (already sized) parent so the swap to the
+ * live canvas causes zero layout shift.
  */
-export function CrateFallback({ size = 330 }: { size?: number }) {
+export function CrateFallback({ size = 330, fill = false }: { size?: number; fill?: boolean }) {
   return (
     <div
-      className={cn("relative flex items-center justify-center rounded-2xl bg-surface", "border border-primary/20")}
-      style={{ width: size, height: size }}
+      className={cn(
+        "relative flex items-center justify-center",
+        fill && "absolute inset-0",
+      )}
+      style={fill ? undefined : { width: size, height: size }}
       aria-hidden
     >
       {/* Radial purple glow behind silhouette */}
       <div
-        className="absolute inset-0 rounded-2xl"
+        className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(circle at 50% 60%, rgba(124,58,237,0.35), transparent 55%)",
+            "radial-gradient(circle at 50% 60%, rgba(124,58,237,0.30), transparent 55%)",
         }}
       />
       {/* Simple crate silhouette using inline SVG (deterministic) */}
       <svg
-        width={size * 0.55}
-        height={size * 0.45}
+        width="55%"
+        height="45%"
         viewBox="0 0 120 100"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

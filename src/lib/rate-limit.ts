@@ -31,9 +31,11 @@ export function rateLimit(key: string, limit: number, windowMs: number): boolean
   return bucket.count <= limit;
 }
 
-/** Best-effort client IP for rate-limit keys (works behind common proxies). */
+/** Best-effort client IP for rate-limit keys (works behind common proxies).
+ *  Uses the RIGHTMOST entry from X-Forwarded-For to prevent spoofing.
+ */
 export function clientIp(request: Request): string {
   const fwd = request.headers.get("x-forwarded-for");
-  if (fwd) return fwd.split(",")[0]!.trim();
+  if (fwd) return fwd.split(",").pop()!.trim();
   return request.headers.get("x-real-ip") ?? "local";
 }

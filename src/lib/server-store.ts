@@ -106,7 +106,8 @@ export async function updateProduct(
   });
 }
 
-export async function removeProduct(id: string): Promise<void> {
+/** Remove a product. Returns true if the product existed and was deleted. */
+export async function removeProduct(id: string): Promise<boolean> {
   if (hasDb) {
     const pool = await db();
     const res = await pool.query(
@@ -119,11 +120,12 @@ export async function removeProduct(id: string): Promise<void> {
         path.basename(image),
       ]);
     }
-    return;
+    return res.rowCount !== null && res.rowCount > 0;
   }
   return enqueue(async () => {
     const arr = await readJson<Product>(STORE_FILE);
     const target = arr.find((p) => p.id === id);
+    if (!target) return false;
     if (target?.image?.startsWith("/uploads/")) {
       const filename = path.basename(target.image);
       await fs.rm(path.join(UPLOADS_DIR, filename), { force: true });
@@ -131,6 +133,7 @@ export async function removeProduct(id: string): Promise<void> {
       await fs.rm(path.join(process.cwd(), "public", "uploads", filename), { force: true });
     }
     await writeJson(STORE_FILE, arr.filter((p) => p.id !== id));
+    return true;
   });
 }
 
@@ -149,11 +152,29 @@ const EXT_MIME: Record<string, string> = {
   avif: "image/avif",
 };
 
+/** Validate image file by magic bytes (PNG, JPEG, GIF, WebP, AVIF). */
+export function isValidImageMagicBytes(buffer: Buffer): boolean {
+  if (buffer.length < 12) return false;
+  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) return true;
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) return true;
+  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) return true;
+  if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
+      buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50) return true;
+  const ftyp = buffer.indexOf("ftyp");
+  if (ftyp !== -1 && buffer.slice(ftyp, ftyp + 16).toString().includes("avif")) return true;
+  return false;
+}
+
 export async function saveUploadedImage(id: string, file: File): Promise<string> {
   const rawExt = (file.name.split(".").pop() ?? "png").toLowerCase();
   const ext = ALLOWED_IMAGE_EXTS.has(rawExt) ? rawExt : "png";
   const filename = `${id}.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
+
+  // Server-side magic-byte validation (defence in depth).
+  if (!isValidImageMagicBytes(buffer)) {
+    throw new Error("Invalid image file: bad magic bytes.");
+  }
 
   if (hasDb) {
     const pool = await db();

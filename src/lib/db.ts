@@ -18,7 +18,7 @@ export async function db(): Promise<Pool> {
     pool = new Pool({
       connectionString: url,
       max: 3, // serverless: keep connections per instance minimal
-      ssl: { rejectUnauthorized: false },
+      ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: true } : { rejectUnauthorized: false },
     });
   }
   if (!ready) {

@@ -9,32 +9,32 @@ import { cookies } from "next/headers";
  * deliberately not supported.)
  */
 const envPasscode = process.env.ADMIN_PASSCODE;
-const FALLBACK_PASSCODE = "loothub-owner";
 
 const isProd = process.env.NODE_ENV === "production";
 
+/**
+ * In production the well-known demo passcode is refused outright —
+ * deploying without ADMIN_PASSCODE set means the admin panel cannot be logged into.
+ */
 export const adminPasscode =
-  envPasscode && envPasscode.length > 0 ? envPasscode : FALLBACK_PASSCODE;
+  envPasscode && envPasscode.length > 0 ? envPasscode : "";
 export const adminIsCustom = Boolean(envPasscode && envPasscode.length > 0);
 
-/**
- * In production the well-known demo passcode is refused outright — the
- * fallback exists only so local dev works with zero setup. Deploying
- * without ADMIN_PASSCODE set means the admin panel cannot be logged into.
- */
 export const adminLoginEnabled = adminIsCustom || !isProd;
 
-/** Secret for signing session tokens. Falls back to a passcode-derived key. */
-const secret =
-  process.env.SESSION_SECRET && process.env.SESSION_SECRET.length > 0
-    ? process.env.SESSION_SECRET
-    : `loothub-session::${adminPasscode}`;
+/** Secret for signing session tokens. Must be set in production. */
+const secret = process.env.SESSION_SECRET;
+
+const safeSecret = secret ?? "dev-only-session-secret-change-me";
 
 const COOKIE_NAME = "loothub_admin";
 const SESSION_HOURS = 12;
 
 function sign(expiresAt: number): string {
-  return createHmac("sha256", secret).update(String(expiresAt)).digest("hex");
+  if (isProd && safeSecret.length < 32) {
+    throw new Error("SESSION_SECRET must be set in production and be at least 32 characters long.");
+  }
+  return createHmac("sha256", safeSecret).update(String(expiresAt)).digest("hex");
 }
 
 export function createSessionToken(): { token: string; maxAge: number } {

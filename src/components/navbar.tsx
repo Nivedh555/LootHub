@@ -11,6 +11,7 @@ import { Input } from "./ui/input";
 import { cn } from "@/lib/utils";
 import { site } from "@/config/site";
 import { useCart } from "@/lib/cart-context";
+import { GradientShimmer } from "@/components/ui/gradient-shimmer";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -72,12 +73,14 @@ export function Navbar() {
           <Image
             src="/logo.png"
             alt=""
-            width={44}
-            height={44}
-            className="h-11 w-11 rounded-lg object-contain ring-1 ring-primary/40"
+            width={56}
+            height={56}
+            className="h-14 w-14 rounded-lg object-contain ring-1 ring-primary/40"
             preload
           />
-          <span className="font-display text-xl font-bold tracking-wide sm:text-2xl">LootHub</span>
+          <GradientShimmer gradient="sunrise" easing="smooth" duration={2.2} spread={4} angle={105} className="font-display text-xl font-bold tracking-wide sm:text-2xl">
+            LootHub
+          </GradientShimmer>
         </Link>
 
         {/* Desktop search */}

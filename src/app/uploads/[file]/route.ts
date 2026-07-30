@@ -1,4 +1,5 @@
 import { getUploadedImage } from "@/lib/server-store";
+import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -19,9 +20,14 @@ const MIME: Record<string, string> = {
  * or data/uploads (local dev) and are streamed from here instead.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ file: string }> },
 ) {
+  // Rate limit file serving: 120 per IP per minute.
+  if (!rateLimit(`uploads:get:${clientIp(request)}`, 120, 60_000)) {
+    return new Response("Too many requests.", { status: 429 });
+  }
+
   const { file } = await params;
 
   // Strict allow-list: "<id>.<ext>" only — blocks traversal and odd names.

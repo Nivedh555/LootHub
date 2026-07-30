@@ -13,6 +13,8 @@ const securityHeaders = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   // This app needs none of these browser features.
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+  // Enforce HTTPS for 2 years (including subdomains).
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
   // XSS containment. 'unsafe-inline' is required by Next.js inline
   // bootstrapping scripts and styled JSX; everything else is same-origin.
   {

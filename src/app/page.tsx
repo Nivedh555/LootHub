@@ -18,9 +18,9 @@ import { HeroSearch } from "@/components/home/hero-search";
 import { FaqAccordion, type FaqItem } from "@/components/home/faq-accordion";
 import { FeaturedCarousel } from "@/components/home/featured-carousel";
 import { AmbientGlow } from "@/components/ui/ambient-glow";
-import { CrateLoader } from "@/components/ui/crate/crate-loader";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { Reveal, RevealGroup, RevealBadge } from "@/components/ui/reveal";
+import { GradientShimmer } from "@/components/ui/gradient-shimmer";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -75,7 +75,9 @@ export default async function HomePage() {
                 In-game items.{" "}
               </Reveal>
               <Reveal variant="clip" inView delay={0.13} className="block">
-                <span className="text-glow text-primary">Pay with crypto.</span>
+                <GradientShimmer gradient="sunrise" easing="smooth" duration={2} spread={4} angle={105} className="text-glow">
+                  Pay with crypto.
+                </GradientShimmer>
               </Reveal>
             </h1>
             <Reveal variant="rise" inView delay={0.1}>
@@ -105,7 +107,17 @@ export default async function HomePage() {
             </Reveal>
           </div>
           <div className="hidden justify-center lg:flex">
-            <CrateLoader size={330} />
+            <div className="relative flex items-center justify-center" style={{ width: 330, height: 330 }}>
+              <div className="absolute inset-6 rounded-full bg-primary/20 blur-3xl" aria-hidden />
+              <Image
+                src="/logo.png"
+                alt="LootHub"
+                width={280}
+                height={280}
+                className="relative z-10 h-auto w-auto max-w-[260px] object-contain drop-shadow-[0_0_40px_rgba(124,58,237,0.5)]"
+                priority
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -161,32 +173,33 @@ export default async function HomePage() {
               <Link
                 key={g}
                 href={`/browse?game=${encodeURIComponent(g)}`}
-                className="group relative block overflow-hidden rounded-2xl border transition-all duration-300 hover:-translate-y-0.5"
-                style={{ borderColor: `${meta.color}4D`, "--hover-color": meta.color } as React.CSSProperties}
+                className="group relative block overflow-hidden rounded-2xl border border-success/30 bg-surface transition-all duration-300 hover:-translate-y-0.5 hover:border-success"
               >
-                <div className="relative aspect-[5/3] overflow-hidden">
+                <div className="relative aspect-[4/3] overflow-hidden bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.06),transparent_70%)]">
                   <Image
                     src={meta.icon}
                     alt={g}
                     fill
-                    className="object-cover transition-transform duration-[400ms] ease-out group-hover:scale-[1.05]"
+                    className="object-contain p-5 transition-transform duration-[400ms] ease-out group-hover:scale-[1.05]"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    quality={95}
+                    priority
+                    unoptimized
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <h3 className="font-display text-lg text-white">{g}</h3>
-                    <span
-                      className="mt-1 inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
-                      style={{ backgroundColor: meta.glow, color: meta.color }}
-                    >
-                      {meta.platform}
-                    </span>
-                  </div>
                 </div>
-                {/* Hover border brighten to 100% opacity */}
+                <div className="border-t border-white/5 p-4">
+                  <h3 className="font-display text-base text-foreground">{g}</h3>
+                  <span
+                    className="mt-1 inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
+                    style={{ backgroundColor: meta.glow, color: meta.color }}
+                  >
+                    {meta.platform}
+                  </span>
+                </div>
+                {/* Hover border glow */}
                 <span
                   className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                  style={{ border: `1px solid ${meta.color}`, boxShadow: `0 0 24px -8px ${meta.glow}` }}
+                  style={{ border: "1px solid #22c55e", boxShadow: "0 0 24px -8px rgba(34,197,94,0.4)" }}
                 />
               </Link>
             );

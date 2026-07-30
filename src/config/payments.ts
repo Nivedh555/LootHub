@@ -7,12 +7,23 @@ export interface CryptoAsset {
   deepLink: (amount: number) => string;
 }
 
-const usdtAddress =
-  process.env.NEXT_PUBLIC_USDT_ADDRESS ??
-  "0xc69e55ce6e8214976ea5925fe94f777f75787e84";
-const ltcAddress =
-  process.env.NEXT_PUBLIC_LTC_ADDRESS ??
-  "LMFVrVVQbmbhoZ9xczTiRS37kh9eVxFStt";
+const usdtAddress = process.env.NEXT_PUBLIC_USDT_ADDRESS;
+const ltcAddress = process.env.NEXT_PUBLIC_LTC_ADDRESS;
+
+// Fail fast at runtime in production if addresses are missing.
+// Skip during build/prerender (NEXT_PHASE === 'phase-production-build').
+const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
+if (!isBuildPhase && process.env.NODE_ENV === "production") {
+  if (!usdtAddress || usdtAddress.length === 0) {
+    throw new Error("NEXT_PUBLIC_USDT_ADDRESS must be set in production.");
+  }
+  if (!ltcAddress || ltcAddress.length === 0) {
+    throw new Error("NEXT_PUBLIC_LTC_ADDRESS must be set in production.");
+  }
+}
+
+const safeUsdt = usdtAddress ?? "0x0000000000000000000000000000000000000000";
+const safeLtc = ltcAddress ?? "LXxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 
 export const cryptoAssets: CryptoAsset[] = [
   {
@@ -20,16 +31,16 @@ export const cryptoAssets: CryptoAsset[] = [
     label: "Tether — USDT",
     network: "BEP20 (BSC)",
     symbol: "USDT",
-    address: usdtAddress,
-    deepLink: () => usdtAddress,
+    address: safeUsdt,
+    deepLink: () => safeUsdt,
   },
   {
     id: "ltc",
     label: "Litecoin — LTC",
     network: "Litecoin Mainnet",
     symbol: "LTC",
-    address: ltcAddress,
+    address: safeLtc,
     deepLink: (amount) =>
-      `litecoin:${ltcAddress}?amount=${amount.toFixed(8)}`,
+      `litecoin:${safeLtc}?amount=${amount.toFixed(8)}`,
   },
 ];

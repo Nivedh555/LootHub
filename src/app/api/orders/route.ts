@@ -6,6 +6,8 @@ import { clientIp, rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
+const MAX_JSON_BODY = 32 * 1024; // 32 KB
+
 /** Owner only: list all orders. */
 export async function GET() {
   if (!(await isAdminRequest())) {
@@ -23,6 +25,12 @@ export async function POST(request: Request) {
       { error: "Too many orders. Try again in a few minutes." },
       { status: 429 },
     );
+  }
+
+  // Enforce body size limit before parsing JSON.
+  const len = Number(request.headers.get("content-length") ?? 0);
+  if (len > MAX_JSON_BODY) {
+    return NextResponse.json({ error: "Payload too large." }, { status: 413 });
   }
 
   let body: unknown;

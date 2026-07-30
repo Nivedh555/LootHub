@@ -7,31 +7,33 @@ import * as THREE from "three";
 import { evalTimeline } from "./use-crate-timeline";
 
 const LOOP = 12;
+/** Frame shown when prefers-reduced-motion: lid open, light on, gem out. */
+const BEAUTY_SHOT_T = 0.62;
+const BURST_COUNT = 120;
 
 /* ─── deterministic burst particles (no Math.random) ─── */
-function createBurstGeometry(count = 120) {
-  const positions = new Float32Array(count * 3);
+function createBurstData(count = BURST_COUNT) {
+  const origins = new Float32Array(count * 3);
   const velocities = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
     const idx = i * 3;
-    // pseudo-random from index
+    // pseudo-random from index (deterministic)
     const a = ((i * 9301 + 49297) % 233280) / 233280;
     const b = ((i * 49297 + 9301) % 233280) / 233280;
     const c = ((i * 49297 + 233280) % 233280) / 233280;
     const theta = a * Math.PI * 2;
     const phi = b * Math.PI;
-    const speed = 0.5 + c * 1.5;
+    const speed = 0.5 + c * 1.2;
     velocities[idx] = Math.sin(phi) * Math.cos(theta) * speed;
-    velocities[idx + 1] = Math.cos(phi) * speed + 0.5; // bias upward
+    velocities[idx + 1] = Math.abs(Math.cos(phi)) * speed + 0.4; // bias upward
     velocities[idx + 2] = Math.sin(phi) * Math.sin(theta) * speed;
-    positions[idx] = 0;
-    positions[idx + 1] = 0.3;
-    positions[idx + 2] = 0;
+    origins[idx] = 0;
+    origins[idx + 1] = 0.9; // gem's emerged height
+    origins[idx + 2] = 0;
   }
   const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geo.setAttribute("velocity", new THREE.BufferAttribute(velocities, 3));
-  return geo;
+  geo.setAttribute("position", new THREE.BufferAttribute(origins.slice(), 3));
+  return { geo, origins, velocities };
 }
 
 /* ─── ground contact shadow (simple gradient sprite) ─── */
@@ -48,6 +50,7 @@ function ContactShadow() {
     ctx.fillRect(0, 0, 128, 128);
     return new THREE.CanvasTexture(canvas);
   }, []);
+  useEffect(() => () => texture.dispose(), [texture]);
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.36, 0]}>
       <planeGeometry args={[2.4, 2.4]} />
@@ -57,155 +60,161 @@ function ContactShadow() {
 }
 
 /* ─── main animated content ─── */
-function CrateContent() {
-  const { camera } = useThree();
-  const reduced = useRef(false);
-  const [paused, setPaused] = useState(false);
-  const tRef = useRef(0);
+function CrateContent({ reduced }: { reduced: boolean }) {
+  const camera = useThree((s) => s.camera);
+  const gl = useThree((s) => s.gl);
+  const set = useThree((s) => s.set);
+  const invalidate = useThree((s) => s.invalidate);
+  const tRef = useRef(reduced ? BEAUTY_SHOT_T : 0);
 
   // refs for animated objects
   const bodyGroup = useRef<THREE.Group>(null);
   const lidGroup = useRef<THREE.Group>(null);
   const lockMesh = useRef<THREE.Mesh>(null);
+  const shackleGroup = useRef<THREE.Group>(null);
   const shackleMesh = useRef<THREE.Mesh>(null);
   const coneMesh = useRef<THREE.Mesh>(null);
   const pointLight = useRef<THREE.PointLight>(null);
+  const gemGroup = useRef<THREE.Group>(null);
   const gemMesh = useRef<THREE.Mesh>(null);
+  const gemGlow = useRef<THREE.Mesh>(null);
   const gemLight = useRef<THREE.PointLight>(null);
   const burstPoints = useRef<THREE.Points>(null);
+
   const cameraRest = useMemo(() => new THREE.Vector3(2, 1.6, 2.5), []);
-  const cameraNear = useMemo(() => new THREE.Vector3(1.4, 1.2, 1.8), []);
-  const cameraZoom = useMemo(() => new THREE.Vector3(1.1, 1.0, 1.4), []);
+  const cameraNear = useMemo(() => new THREE.Vector3(1.5, 1.25, 1.9), []);
+  const cameraZoomV = useMemo(() => new THREE.Vector3(1.15, 1.05, 1.5), []);
+  const camTarget = useMemo(() => new THREE.Vector3(), []);
 
-  // reduced motion (client-only, never SSR'd)
+  // Pause rendering entirely when offscreen or tab hidden (skip in reduced
+  // mode — it's already on frameloop="demand" and renders exactly once).
   useEffect(() => {
-    const m = window.matchMedia("(prefers-reduced-motion: reduce)");
-    reduced.current = m.matches;
-    const handler = (e: MediaQueryListEvent) => {
-      reduced.current = e.matches;
-      if (e.matches) {
-        tRef.current = 0.6; // freeze at hero frame
-      }
-    };
-    m.addEventListener("change", handler);
-    return () => m.removeEventListener("change", handler);
-  }, []);
-
-  // IntersectionObserver + visibilitychange
-  useEffect(() => {
-    const canvas = document.querySelector("canvas");
-    if (!canvas) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setPaused(!entry.isIntersecting),
-      { threshold: 0 },
-    );
-    observer.observe(canvas);
-    const onVis = () => setPaused(document.hidden);
-    document.addEventListener("visibilitychange", onVis);
+    if (reduced) {
+      invalidate();
+      return;
+    }
+    let visible = true;
+    const sync = () =>
+      set({ frameloop: visible && !document.hidden ? "always" : "never" });
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      sync();
+    });
+    observer.observe(gl.domElement);
+    document.addEventListener("visibilitychange", sync);
     return () => {
       observer.disconnect();
-      document.removeEventListener("visibilitychange", onVis);
+      document.removeEventListener("visibilitychange", sync);
     };
-  }, []);
+  }, [reduced, gl, set, invalidate]);
 
-  const burstGeo = useMemo(() => createBurstGeometry(), []);
+  const burst = useMemo(() => createBurstData(), []);
+  useEffect(() => () => burst.geo.dispose(), [burst]);
 
   useFrame((_, delta) => {
-    if (paused || reduced.current) {
-      // When reduced motion is active, we keep rendering but don't advance t
-      // tRef is pinned at 0.6 by the effect above
-      // We still apply the current frame so the scene looks like a static beauty shot
-    } else {
-      tRef.current += delta / LOOP;
-      if (tRef.current > 1) tRef.current -= 1;
+    if (!reduced) {
+      // clamp so a background-tab resume doesn't jump the timeline
+      tRef.current += Math.min(delta, 0.1) / LOOP;
+      if (tRef.current >= 1) tRef.current -= 1;
     }
 
-    const f = evalTimeline(tRef.current);
+    const t = tRef.current;
+    const f = evalTimeline(t);
 
-    // Body float + yaw + shiver
+    // Body float + yaw + shiver (shiver as tiny x-wobble = anticipation)
     if (bodyGroup.current) {
-      bodyGroup.current.position.y = f.bodyY + f.shiver;
-      bodyGroup.current.rotation.y = f.bodyYaw;
+      bodyGroup.current.position.y = f.bodyY;
+      bodyGroup.current.rotation.y = f.bodyYaw + Math.sin(t * 240) * f.shiver;
     }
 
-    // Camera dolly (rest → near front-quarter)
-    const camTarget = new THREE.Vector3()
+    // Camera dolly (rest → front-quarter → zoom); reduced = snap, else smooth
+    camTarget
       .lerpVectors(cameraRest, cameraNear, f.cameraBlend)
-      .lerp(cameraZoom, f.cameraZoom);
-    camera.position.lerp(camTarget, 0.08);
-    camera.lookAt(0, 0.2, 0);
+      .lerp(cameraZoomV, f.cameraZoom);
+    if (reduced) camera.position.copy(camTarget);
+    else camera.position.lerp(camTarget, 1 - Math.pow(0.001, delta));
+    camera.lookAt(0, 0.25, 0);
 
     // Lid hinge rotation
-    if (lidGroup.current) {
-      lidGroup.current.rotation.x = f.lidRotation;
-    }
+    if (lidGroup.current) lidGroup.current.rotation.x = f.lidRotation;
 
     // Lock emissive + shackle + opacity
     if (lockMesh.current) {
-      const mat = lockMesh.current.material as THREE.MeshStandardMaterial;
-      mat.emissiveIntensity = f.lockEmissive;
+      (lockMesh.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+        f.lockEmissive;
+    }
+    if (shackleGroup.current) {
+      shackleGroup.current.rotation.x = f.shackleOpen * Math.PI * 0.6;
+      shackleGroup.current.position.y = 0.22 - f.shackleOpen * 0.05;
     }
     if (shackleMesh.current) {
-      shackleMesh.current.rotation.x = f.shackleOpen * Math.PI * 0.65;
-      shackleMesh.current.position.y = -f.shackleOpen * 0.06;
-      const mat = shackleMesh.current.material as THREE.MeshStandardMaterial;
-      mat.opacity = f.lockOpacity;
-      mat.transparent = true;
+      (shackleMesh.current.material as THREE.MeshStandardMaterial).opacity =
+        f.lockOpacity;
     }
 
-    // Volumetric cone
+    // Volumetric cone + interior light
     if (coneMesh.current) {
-      coneMesh.current.scale.setScalar(f.coneScale);
-      const mat = coneMesh.current.material as THREE.MeshBasicMaterial;
-      mat.opacity = f.coneScale * 0.15;
+      coneMesh.current.scale.set(f.coneScale, f.coneScale, f.coneScale);
+      coneMesh.current.visible = f.coneScale > 0.001;
+      (coneMesh.current.material as THREE.MeshBasicMaterial).opacity =
+        f.coneScale * 0.14;
     }
+    if (pointLight.current) pointLight.current.intensity = f.lightIntensity;
 
-    // Interior light
-    if (pointLight.current) {
-      pointLight.current.intensity = f.lightIntensity;
+    // Gem — position/scale/spin are pure functions of t (loop-safe)
+    if (gemGroup.current) {
+      gemGroup.current.position.y = 0.25 + f.gemRise * 0.65;
+      gemGroup.current.position.z = Math.sin(f.gemRise * Math.PI) * 0.12;
+      gemGroup.current.scale.setScalar(Math.max(f.gemScale, 0.0001));
+      gemGroup.current.visible = f.gemScale > 0.001;
     }
-
-    // Gem
     if (gemMesh.current) {
-      gemMesh.current.position.y = 0.35 + f.gemRise * 0.7;
-      gemMesh.current.position.z = Math.sin(f.gemRise * Math.PI) * 0.15;
-      gemMesh.current.scale.setScalar(f.gemScale);
-      gemMesh.current.rotation.y += delta * 2 * f.gemSpin;
-      const mat = gemMesh.current.material as THREE.MeshStandardMaterial;
-      mat.opacity = f.gemOpacity;
-      mat.transparent = f.gemOpacity < 1;
+      gemMesh.current.rotation.y = f.gemSpin * Math.PI * 5 + f.gemRise * 0.8;
+      gemMesh.current.rotation.x = Math.sin(f.gemSpin * Math.PI * 2) * 0.15;
+      (gemMesh.current.material as THREE.MeshStandardMaterial).opacity =
+        f.gemOpacity;
     }
-    if (gemLight.current) {
-      gemLight.current.intensity = f.gemOpacity * 2;
+    if (gemGlow.current) {
+      gemGlow.current.quaternion.copy(camera.quaternion); // billboard
+      (gemGlow.current.material as THREE.MeshBasicMaterial).opacity =
+        f.gemOpacity * 0.3;
     }
+    if (gemLight.current) gemLight.current.intensity = f.gemOpacity * f.gemRise * 2;
 
-    // Burst particles
+    // Burst particles — positions derived from burstExpand (no accumulation,
+    // so the loop resets cleanly)
     if (burstPoints.current) {
-      const pos = burstPoints.current.geometry.attributes.position.array as Float32Array;
-      const vel = burstPoints.current.geometry.attributes.velocity.array as Float32Array;
-      for (let i = 0; i < pos.length / 3; i++) {
-        const idx = i * 3;
-        pos[idx] += vel[idx] * delta * f.burstExpand;
-        pos[idx + 1] += vel[idx + 1] * delta * f.burstExpand;
-        pos[idx + 2] += vel[idx + 2] * delta * f.burstExpand;
+      burstPoints.current.visible = f.burstOpacity > 0.001;
+      if (burstPoints.current.visible) {
+        const pos = burstPoints.current.geometry.attributes.position
+          .array as Float32Array;
+        const { origins, velocities } = burst;
+        const spread = f.burstExpand * 0.9;
+        for (let i = 0; i < pos.length; i += 3) {
+          pos[i] = origins[i] + velocities[i] * spread;
+          pos[i + 1] =
+            origins[i + 1] + velocities[i + 1] * spread - spread * spread * 0.3; // gravity
+          pos[i + 2] = origins[i + 2] + velocities[i + 2] * spread;
+        }
+        burstPoints.current.geometry.attributes.position.needsUpdate = true;
       }
-      burstPoints.current.geometry.attributes.position.needsUpdate = true;
-      (burstPoints.current.material as THREE.PointsMaterial).opacity = f.burstOpacity;
+      (burstPoints.current.material as THREE.PointsMaterial).opacity =
+        f.burstOpacity;
     }
   });
 
   return (
     <group>
       {/* Lighting */}
-      <ambientLight intensity={0.3} color="#b9a9d6" />
-      <directionalLight position={[3, 4, 2]} intensity={1.2} color="#c4b5fd" castShadow={false} />
+      <ambientLight intensity={0.35} color="#b9a9d6" />
+      <directionalLight position={[3, 4, 2]} intensity={1.2} color="#c4b5fd" />
       <pointLight position={[-2, 2, -3]} intensity={0.6} color="#a78bfa" />
 
       {/* Body + Lid group */}
       <group ref={bodyGroup}>
         {/* Crate body */}
-        <RoundedBox args={[1.2, 0.7, 0.9]} radius={0.04} smoothness={4} castShadow>
-          <meshStandardMaterial color="#1e0f3a" roughness={0.6} metalness={0.15} />
+        <RoundedBox args={[1.2, 0.7, 0.9]} radius={0.04} smoothness={4}>
+          <meshStandardMaterial color="#1e0f3a" roughness={0.55} metalness={0.2} />
         </RoundedBox>
 
         {/* Trim strips */}
@@ -229,61 +238,109 @@ function CrateContent() {
         {/* Lock body */}
         <mesh ref={lockMesh} position={[0, 0.08, 0.48]}>
           <boxGeometry args={[0.18, 0.22, 0.08]} />
-          <meshStandardMaterial color="#7c3aed" emissive="#7c3aed" emissiveIntensity={0} roughness={0.2} metalness={0.9} />
+          <meshStandardMaterial
+            color="#7c3aed"
+            emissive="#7c3aed"
+            emissiveIntensity={0}
+            roughness={0.2}
+            metalness={0.9}
+          />
         </mesh>
-        {/* Lock shackle */}
-        <mesh ref={shackleMesh} position={[0, 0.22, 0.48]}>
-          <torusGeometry args={[0.07, 0.015, 8, 16, Math.PI]} />
-          <meshStandardMaterial color="#a78bfa" roughness={0.2} metalness={0.9} transparent />
-        </mesh>
-
-        {/* Hinge group for lid */}
-        <group ref={lidGroup} position={[0, 0.35, -0.46]}>
-          {/* Lid */}
-          <RoundedBox args={[1.25, 0.22, 0.95]} radius={0.04} smoothness={4} castShadow>
-            <meshStandardMaterial color="#1e0f3a" roughness={0.6} metalness={0.15} />
-          </RoundedBox>
-          {/* Lid trim */}
-          <mesh position={[0, 0, 0.48]}>
-            <boxGeometry args={[1.27, 0.24, 0.02]} />
-            <meshStandardMaterial color="#7c3aed" roughness={0.3} metalness={0.8} />
-          </mesh>
-          <mesh position={[0, 0, -0.48]}>
-            <boxGeometry args={[1.27, 0.24, 0.02]} />
-            <meshStandardMaterial color="#7c3aed" roughness={0.3} metalness={0.8} />
+        {/* Lock shackle — grouped so rotation pivots at its base */}
+        <group ref={shackleGroup} position={[0, 0.22, 0.48]}>
+          <mesh ref={shackleMesh}>
+            <torusGeometry args={[0.07, 0.015, 8, 16, Math.PI]} />
+            <meshStandardMaterial
+              color="#a78bfa"
+              roughness={0.2}
+              metalness={0.9}
+              transparent
+            />
           </mesh>
         </group>
 
+        {/* Hinge group for lid — pivot at back-top edge */}
+        <group ref={lidGroup} position={[0, 0.35, -0.46]}>
+          <group position={[0, 0.11, 0.46]}>
+            <RoundedBox args={[1.25, 0.22, 0.95]} radius={0.04} smoothness={4}>
+              <meshStandardMaterial color="#1e0f3a" roughness={0.55} metalness={0.2} />
+            </RoundedBox>
+            <mesh position={[0, 0, 0.47]}>
+              <boxGeometry args={[1.27, 0.24, 0.02]} />
+              <meshStandardMaterial color="#7c3aed" roughness={0.3} metalness={0.8} />
+            </mesh>
+            <mesh position={[0, 0, -0.47]}>
+              <boxGeometry args={[1.27, 0.24, 0.02]} />
+              <meshStandardMaterial color="#7c3aed" roughness={0.3} metalness={0.8} />
+            </mesh>
+          </group>
+        </group>
+
         {/* Interior point light */}
-        <pointLight ref={pointLight} position={[0, 0.2, 0]} intensity={0} color="#d8b4fe" distance={3} />
+        <pointLight
+          ref={pointLight}
+          position={[0, 0.4, 0]}
+          intensity={0}
+          color="#d8b4fe"
+          distance={3}
+        />
 
-        {/* Volumetric light cone */}
-        <mesh ref={coneMesh} position={[0, 0.6, 0]} rotation={[0, 0, 0]}>
-          <coneGeometry args={[0.45, 1.6, 32, 1, true]} />
-          <meshBasicMaterial color="#c4b5fd" transparent opacity={0} depthWrite={false} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} />
+        {/* Volumetric light cone (apex down inside the crate, opens upward) */}
+        <mesh ref={coneMesh} position={[0, 1.05, 0]} visible={false}>
+          <coneGeometry args={[0.55, 1.5, 32, 1, true]} />
+          <meshBasicMaterial
+            color="#c4b5fd"
+            transparent
+            opacity={0}
+            depthWrite={false}
+            side={THREE.DoubleSide}
+            blending={THREE.AdditiveBlending}
+          />
         </mesh>
 
-        {/* Gem */}
-        <mesh ref={gemMesh} position={[0, 0.35, 0]}>
-          <icosahedronGeometry args={[0.18, 1]} />
-          <meshStandardMaterial color="#7c3aed" emissive="#a78bfa" emissiveIntensity={2} roughness={0.1} metalness={0.1} transparent />
-        </mesh>
-        <pointLight ref={gemLight} position={[0, 0.35, 0]} intensity={0} color="#d8b4fe" distance={2} />
+        {/* Gem (group animates position/scale; mesh spins inside it) */}
+        <group ref={gemGroup} position={[0, 0.25, 0]} visible={false}>
+          <mesh ref={gemMesh}>
+            <icosahedronGeometry args={[0.18, 1]} />
+            <meshStandardMaterial
+              color="#7c3aed"
+              emissive="#a78bfa"
+              emissiveIntensity={2}
+              roughness={0.1}
+              metalness={0.1}
+              flatShading
+              transparent
+            />
+          </mesh>
+          {/* Additive glow sprite billboarded to camera */}
+          <mesh ref={gemGlow}>
+            <planeGeometry args={[0.8, 0.8]} />
+            <meshBasicMaterial
+              color="#a78bfa"
+              transparent
+              opacity={0}
+              depthWrite={false}
+              blending={THREE.AdditiveBlending}
+            />
+          </mesh>
+        </group>
+        <pointLight ref={gemLight} position={[0, 0.9, 0]} intensity={0} color="#d8b4fe" distance={2} />
 
-        {/* Glow sprite behind gem */}
-        <mesh position={[0, 0.35, -0.1]}>
-          <planeGeometry args={[0.8, 0.8]} />
-          <meshBasicMaterial color="#a78bfa" transparent opacity={0.25} depthWrite={false} blending={THREE.AdditiveBlending} side={THREE.DoubleSide} />
-        </mesh>
+        {/* Burst particles */}
+        <points ref={burstPoints} geometry={burst.geo} visible={false}>
+          <pointsMaterial
+            size={0.045}
+            color="#d8b4fe"
+            transparent
+            opacity={0}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+          />
+        </points>
       </group>
 
       {/* Ambient sparkles */}
-      <Sparkles count={60} scale={3} size={2} speed={0.4} opacity={0.6} color="#c4b5fd" />
-
-      {/* Burst particles */}
-      <points ref={burstPoints} geometry={burstGeo}>
-        <pointsMaterial size={0.04} color="#d8b4fe" transparent opacity={0} depthWrite={false} blending={THREE.AdditiveBlending} />
-      </points>
+      <Sparkles count={50} scale={[2.6, 2.2, 2.6]} size={2} speed={0.4} opacity={0.5} color="#c4b5fd" />
 
       {/* Ground shadow */}
       <ContactShadow />
@@ -292,27 +349,37 @@ function CrateContent() {
 }
 
 export default function CrateScene({ size = 330 }: { size?: number }) {
-  const [reduced] = useState(() => {
-    if (typeof window !== "undefined") {
-      return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    }
-    return false;
-  });
+  // ssr:false — window always exists; read once, listener not needed for the
+  // initial frameloop choice (CrateContent handles live changes).
+  const [reduced] = useState(
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+  const glRef = useRef<THREE.WebGLRenderer | null>(null);
+
+  // Leak-proof across navigations: drop the GL context on unmount.
+  useEffect(
+    () => () => {
+      glRef.current?.dispose();
+      glRef.current?.forceContextLoss();
+    },
+    [],
+  );
 
   return (
-    <div style={{ width: size, height: size }}>
+    <div style={{ width: size, height: size }} aria-hidden>
       <Canvas
         dpr={[1, 2]}
-        gl={{ antialias: true, powerPreference: "high-performance" }}
+        gl={{ antialias: true, powerPreference: "high-performance", alpha: true }}
         frameloop={reduced ? "demand" : "always"}
         camera={{ position: [2, 1.6, 2.5], fov: 38, near: 0.1, far: 20 }}
         onCreated={({ gl }) => {
+          glRef.current = gl;
           gl.toneMapping = THREE.ACESFilmicToneMapping;
           gl.toneMappingExposure = 1.1;
         }}
       >
         <Suspense fallback={null}>
-          <CrateContent />
+          <CrateContent reduced={reduced} />
         </Suspense>
       </Canvas>
     </div>
