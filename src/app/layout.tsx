@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { CartProvider } from "@/lib/cart-context";
 import { Navbar } from "@/components/navbar";
-import { FloatingCart } from "@/components/floating-cart";
 import { Footer } from "@/components/footer";
 import { site } from "@/config/site";
 
@@ -27,7 +26,6 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col bg-background text-foreground antialiased">
         <CartProvider>
           <Navbar />
-          <FloatingCart />
           <main id="main" className="flex-1 pt-[4.5rem]">
             {children}
           </main>
