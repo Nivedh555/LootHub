@@ -86,78 +86,6 @@
     text-shadow: 0 0 24px rgba(124, 58, 237, 0.55);
   }
 
-  /* Aurora: two drifting blurred orbs behind the hero content */
-  .aurora {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-  .aurora::before,
-  .aurora::after {
-    content: "";
-    position: absolute;
-    border-radius: 9999px;
-    filter: blur(64px);
-    will-change: transform;
-  }
-  .aurora::before {
-    width: 34rem;
-    height: 34rem;
-    left: -12%;
-    top: -40%;
-    background: radial-gradient(circle, rgba(124, 58, 237, 0.45), transparent 60%);
-    animation: aurora-1 18s ease-in-out infinite alternate;
-  }
-  .aurora::after {
-    width: 30rem;
-    height: 30rem;
-    right: -12%;
-    top: -10%;
-    background: radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent 60%);
-    animation: aurora-2 23s ease-in-out infinite alternate;
-  }
-
-  /* Beams: slow-rotating conic light spokes, masked to fade at center + edges */
-  .beams {
-    position: absolute;
-    inset: -40%;
-    pointer-events: none;
-    background: conic-gradient(
-      from 0deg at 50% 50%,
-      transparent 0deg,
-      rgba(124, 58, 237, 0.16) 10deg,
-      transparent 20deg,
-      transparent 100deg,
-      rgba(167, 139, 250, 0.12) 110deg,
-      transparent 120deg,
-      transparent 190deg,
-      rgba(139, 92, 246, 0.14) 200deg,
-      transparent 210deg,
-      transparent 280deg,
-      rgba(124, 58, 237, 0.12) 290deg,
-      transparent 300deg,
-      transparent 360deg
-    );
-    animation: beams-spin 48s linear infinite;
-    mask: radial-gradient(closest-side, transparent 0%, #000 35%, #000 75%, transparent 100%);
-    -webkit-mask: radial-gradient(closest-side, transparent 0%, #000 35%, #000 75%, transparent 100%);
-  }
-
-
-  /* ── Ambient backdrop: grid drift, orbs, beams, noise ─────────────── */
-  .ambient-orbs {
-    background:
-      radial-gradient(38rem 30rem at 15% 12%, rgba(124, 58, 237, 0.16), transparent 60%),
-      radial-gradient(34rem 28rem at 88% 30%, rgba(139, 92, 246, 0.12), transparent 60%);
-    animation: ambient-orbs-drift 26s ease-in-out infinite alternate;
-  }
-  .ambient-noise {
-    opacity: 0.05;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 140px 140px;
-  }
-
   /* Transparent → glass header */
   .header-glass {
     background: color-mix(in srgb, var(--color-background) 78%, transparent);
@@ -242,43 +170,8 @@
     background: radial-gradient(ellipse at center, transparent 0%, transparent 50%, rgba(11, 6, 20, 0.6) 100%);
   }
 
-  /* Reviews marquee */
-  .marquee {
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-    mask: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
-    -webkit-mask: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
-  }
-  .marquee-track {
-    display: flex;
-    width: max-content;
-    animation: marquee 50s linear infinite;
-  }
-  .marquee:hover .marquee-track {
-    animation-play-state: paused;
-  }
 }
 
-@keyframes aurora-1 {
-  from { transform: translate(0, 0) scale(1); }
-  to { transform: translate(4rem, 3rem) scale(1.08); }
-}
-@keyframes aurora-2 {
-  from { transform: translate(0, 0) scale(1); }
-  to { transform: translate(-3rem, 2.5rem) scale(1.1); }
-}
-@keyframes beams-spin {
-  to { transform: rotate(360deg); }
-}
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-@keyframes ambient-orbs-drift {
-  from { transform: translate(0, 0); }
-  to { transform: translate(-2.5rem, 2rem); }
-}
 @keyframes glow-orb-1 {
   from { transform: translate(0, 0) scale(1); }
   to { transform: translate(5rem, 4rem) scale(1.1); }
@@ -298,11 +191,6 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .aurora::before,
-  .aurora::after,
-  .beams,
-  .marquee-track,
-  .ambient-orbs,
   .glow-orbs::before,
   .glow-orbs::after,
   .glow-rays {
@@ -310,26 +198,3 @@
   }
 }
 
-@theme inline {
-  --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite alternate;
-  --animate-spin-around: spin-around calc(var(--speed) * 2) infinite linear;
-  @keyframes shimmer-slide {
-  to {
-    transform: translate(calc(100cqw - 100%), 0);
-    }
-  }
-  @keyframes spin-around {
-  0% {
-    transform: translateZ(0) rotate(0);
-    }
-  15%, 35% {
-    transform: translateZ(0) rotate(90deg);
-    }
-  65%, 85% {
-    transform: translateZ(0) rotate(270deg);
-    }
-  100% {
-    transform: translateZ(0) rotate(360deg);
-    }
-  }
-}
