@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   Coins,
@@ -16,9 +17,9 @@ import { DiscordButton } from "@/components/discord-button";
 import { HeroSearch } from "@/components/home/hero-search";
 import { FaqAccordion, type FaqItem } from "@/components/home/faq-accordion";
 import { FeaturedCarousel } from "@/components/home/featured-carousel";
-import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { AmbientGlow } from "@/components/ui/ambient-glow";
 import { LootCrateHero } from "@/components/ui/loot-crate-hero";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 import { Reveal, RevealGroup, RevealBadge } from "@/components/ui/reveal";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { buttonVariants } from "@/components/ui/button";
@@ -26,7 +27,6 @@ import { Badge } from "@/components/ui/badge";
 import { SectionHeading } from "@/components/section-heading";
 import { discord } from "@/config/site";
 import { games, gameMeta } from "@/config/games";
-import { GameIcon } from "@/components/game-icon";
 import { getAllProducts } from "@/lib/server-store";
 
 export const dynamic = "force-dynamic";
@@ -153,32 +153,41 @@ export default async function HomePage() {
           inView
           variant="scale"
           staggerChildren={0.05}
-          className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:gap-5"
+          className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
         >
           {games.map((g) => {
             const meta = gameMeta[g];
             return (
-              <Link key={g} href={`/browse?game=${encodeURIComponent(g)}`} className="group block h-full">
-                <SpotlightCard
-                  spotlightColor={meta.glow}
-                  borderColor={meta.color}
-                  className="flex h-full flex-col p-5 transition-transform duration-200 group-hover:-translate-y-1"
-                >
-                  <span
-                    className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl"
-                    style={{ boxShadow: `0 0 24px -6px ${meta.glow}` }}
-                  >
-                    <GameIcon game={g} className="h-12 w-12 rounded-xl" />
-                  </span>
-                  <h3 className="mt-4 font-display text-sm sm:text-base">{g}</h3>
-                  <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{meta.blurb}</p>
-                  <span
-                    className="mt-3 inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
-                    style={{ backgroundColor: meta.glow, color: meta.color }}
-                  >
-                    {meta.platform}
-                  </span>
-                </SpotlightCard>
+              <Link
+                key={g}
+                href={`/browse?game=${encodeURIComponent(g)}`}
+                className="group relative block overflow-hidden rounded-2xl border transition-all duration-300 hover:-translate-y-0.5"
+                style={{ borderColor: `${meta.color}4D`, "--hover-color": meta.color } as React.CSSProperties}
+              >
+                <div className="relative aspect-[5/3] overflow-hidden">
+                  <Image
+                    src={meta.icon}
+                    alt={g}
+                    fill
+                    className="object-cover transition-transform duration-[400ms] ease-out group-hover:scale-[1.05]"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="font-display text-lg text-white">{g}</h3>
+                    <span
+                      className="mt-1 inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
+                      style={{ backgroundColor: meta.glow, color: meta.color }}
+                    >
+                      {meta.platform}
+                    </span>
+                  </div>
+                </div>
+                {/* Hover border brighten to 100% opacity */}
+                <span
+                  className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  style={{ border: `1px solid ${meta.color}`, boxShadow: `0 0 24px -8px ${meta.glow}` }}
+                />
               </Link>
             );
           })}

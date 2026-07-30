@@ -21,7 +21,7 @@ export function ProductCard({
     <SpotlightCard
       as="article"
       className={cn(
-        "group flex h-full flex-col transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/60 hover:shadow-[0_24px_60px_-20px_rgba(124,58,237,0.55)]",
+        "group flex h-full flex-col",
         className,
       )}
     >
@@ -32,7 +32,7 @@ export function ProductCard({
       >
         <ProductCover
           product={product}
-          className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-110"
+          className="h-full w-full transition-transform duration-[400ms] ease-out group-hover:scale-[1.04]"
         />
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card to-transparent opacity-70" aria-hidden />
         <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
@@ -66,13 +66,21 @@ export function ProductCard({
         </Link>
 
         <div className="mt-auto space-y-3 pt-2">
-          <div className="flex items-center justify-between">
+          <div className="relative flex items-center justify-between overflow-hidden">
             <span className="font-display text-xl font-bold text-foreground">{formatPrice(product.price)}</span>
             <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
               <Boxes className="h-3.5 w-3.5" aria-hidden /> Discord delivery
             </span>
+            {/* subtle sheen on hover */}
+            <span
+              className="pointer-events-none absolute inset-y-0 left-0 w-1/2 -translate-x-full bg-gradient-to-r from-transparent via-white/[0.04] to-transparent transition-transform duration-500 ease-out group-hover:translate-x-[200%]"
+              aria-hidden
+            />
           </div>
-          <CardActions product={product} />
+          {/* Steam-like button reveal on hover; always visible on mobile */}
+          <div className="opacity-100 translate-y-0 sm:opacity-0 sm:translate-y-1 transition-all duration-150 ease-out group-hover:opacity-100 group-hover:translate-y-0">
+            <CardActions product={product} />
+          </div>
         </div>
       </div>
     </SpotlightCard>
