@@ -8,6 +8,7 @@
  */
 
 import dynamic from "next/dynamic";
+import { useSyncExternalStore } from "react";
 import { useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -22,16 +23,29 @@ function Starfield({ className }: { className?: string }) {
 
 const PixelRocketHero = dynamic(() => import("./pixel-rocket-hero"), {
   ssr: false,
-  loading: () => <Starfield />,
+  loading: () => null,
 });
+
+// Hydration-safe "has mounted" flag: false on the server and during the
+// first client render, true right after — so both sides render the same tree.
+const emptySubscribe = () => () => {};
+function useMounted() {
+  return useSyncExternalStore(
+    emptySubscribe,
+    () => true,
+    () => false,
+  );
+}
 
 export function PixelHeroLoader({ className }: { className?: string }) {
   const reduced = useReducedMotion();
-  if (reduced) return <Starfield className={className} />;
+  const mounted = useMounted();
   return (
     <div className={cn("pointer-events-none absolute inset-0", className)}>
       <Starfield />
-      <PixelRocketHero />
+      {/* Only decide about the canvas after hydration; useReducedMotion is
+          null on the server, which would otherwise mismatch this branch. */}
+      {mounted && !reduced && <PixelRocketHero />}
     </div>
   );
 }

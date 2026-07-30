@@ -26,9 +26,11 @@ export function FloatingCart() {
   return (
     <motion.div
       className="fixed bottom-5 right-5 z-40 sm:bottom-auto sm:right-6 sm:top-[5.25rem]"
-      initial={reduced ? false : { opacity: 0, scale: 0.8 }}
+      initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      // Reduced motion is handled via duration (not `initial`) so the
+      // server-rendered style always matches the first client render.
+      transition={reduced ? { duration: 0 } : { duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
     >
       <Link
         href="/cart"
