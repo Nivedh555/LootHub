@@ -17,7 +17,7 @@ import { HeroSearch } from "@/components/home/hero-search";
 import { FaqAccordion, type FaqItem } from "@/components/home/faq-accordion";
 import { FeaturedCarousel } from "@/components/home/featured-carousel";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
-import { AmbientBackground } from "@/components/ui/ambient-background";
+import { AmbientGlow } from "@/components/ui/ambient-glow";
 import { LootCrateHero } from "@/components/ui/loot-crate-hero";
 import { Reveal, RevealGroup, RevealBadge } from "@/components/ui/reveal";
 import { NumberTicker } from "@/components/ui/number-ticker";
@@ -62,7 +62,7 @@ export default async function HomePage() {
       <AutoRefresh />
       {/* Hero — dense, two-column, crate animation */}
       <section className="relative -mt-[4.5rem] overflow-hidden border-b border-border pt-[4.5rem]">
-        <AmbientBackground />
+        <AmbientGlow />
         <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-6 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[1fr_360px] lg:gap-4">
           <div>
             <RevealBadge>
@@ -240,7 +240,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
         <Reveal inView>
           <div className="relative overflow-hidden rounded-3xl border border-[#5865F2]/40 bg-gradient-to-br from-[#5865F2]/25 via-surface to-primary/15 p-8 sm:p-10">
-            <AmbientBackground className="opacity-60" />
+            <AmbientGlow className="opacity-60" />
             <div className="relative flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="max-w-xl font-display text-2xl leading-tight sm:text-3xl">
