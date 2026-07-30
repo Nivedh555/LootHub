@@ -45,6 +45,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(PENDING_KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Restoring sessionStorage-backed order after refresh; one-shot hydration pattern.
       if (raw) setOrder(JSON.parse(raw) as PlacedOrder);
     } catch {
       // ignore
