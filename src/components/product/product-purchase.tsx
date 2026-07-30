@@ -26,49 +26,49 @@ export function ProductPurchase({ product }: { product: Product }) {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end gap-3">
-        <span className="font-display text-4xl text-accent">{formatPrice(product.price)}</span>
+        <span className="font-display text-2xl text-accent">{formatPrice(product.price)}</span>
         {product.rarity && (
-          <span className="mb-1 inline-flex items-center rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-semibold text-primary">
+          <span className="mb-1 inline-flex items-center rounded-none border-2 border-primary px-2 py-1 font-display text-[9px] uppercase text-primary">
             {product.rarity}
           </span>
         )}
         {outOfStock && (
-          <span className="mb-1.5 inline-flex items-center rounded-full border border-destructive/40 px-2.5 py-0.5 text-xs font-semibold text-destructive">
+          <span className="mb-1 inline-flex items-center rounded-none border-2 border-destructive px-2 py-1 font-display text-[9px] uppercase text-destructive">
             Out of stock
           </span>
         )}
         {!outOfStock && product.stock <= 5 && (
-          <span className="mb-1.5 inline-flex items-center rounded-full border border-border px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+          <span className="mb-1 inline-flex items-center rounded-none border-2 border-border px-2 py-1 font-display text-[9px] uppercase text-muted-foreground">
             {product.stock} in stock
           </span>
         )}
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className={cn("inline-flex items-center rounded-xl border border-border bg-surface", disabled && "opacity-50")}>
+        <div className={cn("inline-flex items-center rounded-none border-2 border-border bg-surface", disabled && "opacity-50")}>
           <button
             type="button"
             aria-label="Decrease quantity"
             disabled={disabled || safeQty <= 1}
             onClick={() => setQty(Math.max(1, safeQty - 1))}
-            className="flex h-12 w-12 items-center justify-center text-muted-foreground transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+            className="flex h-12 w-12 cursor-pointer items-center justify-center border-r-2 border-border text-muted-foreground transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
           >
-            <Minus className="h-4 w-4" />
+            <Minus className="h-4 w-4" aria-hidden />
           </button>
           <input
             readOnly
             value={safeQty}
             aria-label="Quantity"
-            className="w-12 bg-transparent text-center font-semibold outline-none"
+            className="w-12 bg-transparent text-center font-display text-xs outline-none"
           />
           <button
             type="button"
             aria-label="Increase quantity"
             disabled={disabled || safeQty >= maxQty}
             onClick={() => setQty(Math.min(maxQty, safeQty + 1))}
-            className="flex h-12 w-12 items-center justify-center text-muted-foreground transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
+            className="flex h-12 w-12 cursor-pointer items-center justify-center border-l-2 border-border text-muted-foreground transition-colors hover:text-foreground disabled:pointer-events-none disabled:opacity-40"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4" aria-hidden />
           </button>
         </div>
         <Button

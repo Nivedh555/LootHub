@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { CartProvider } from "@/lib/cart-context";
+import { ToastProvider } from "@/components/ui/toast";
 import { Navbar } from "@/components/navbar";
 import { FloatingCart } from "@/components/floating-cart";
 import { Footer } from "@/components/footer";
@@ -26,12 +27,14 @@ export default function RootLayout({
     <html lang="en" className="h-full scroll-smooth">
       <body className="flex min-h-full flex-col bg-background text-foreground antialiased">
         <CartProvider>
-          <Navbar />
-          <FloatingCart />
-          <main id="main" className="flex-1 pt-[4.5rem]">
-            {children}
-          </main>
-          <Footer />
+          <ToastProvider>
+            <Navbar />
+            <FloatingCart />
+            <main id="main" className="flex-1 pt-[4.5rem]">
+              {children}
+            </main>
+            <Footer />
+          </ToastProvider>
         </CartProvider>
       </body>
     </html>

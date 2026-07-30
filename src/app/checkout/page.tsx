@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/toast";
 import { useCart } from "@/lib/cart-context";
 import { cryptoAssets } from "@/config/payments";
 import { discord } from "@/config/site";
@@ -34,6 +35,7 @@ const PENDING_KEY = "loothub:pending-order";
 
 export default function CheckoutPage() {
   const { items, subtotal, count, clear, sync } = useCart();
+  const toast = useToast();
   const [assetId, setAssetId] = useState(cryptoAssets[0].id);
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState<string | null>(null);
@@ -45,6 +47,9 @@ export default function CheckoutPage() {
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(PENDING_KEY);
+      // One-time restore from an external store; the `restored` gate below
+      // keeps the first client render null, so no hydration mismatch.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (raw) setOrder(JSON.parse(raw) as PlacedOrder);
     } catch {
       // ignore
@@ -72,10 +77,11 @@ export default function CheckoutPage() {
         error?: string;
       };
       if (!res.ok || !data.order) {
-        setPlaceError(
+        const message =
           data.error ??
-            "Could not place the order. Please try again or contact us on Discord.",
-        );
+          "Could not place the order. Please try again or contact us on Discord.";
+        setPlaceError(message);
+        toast.error(message);
         // Stock likely changed under us — pull the cart back in line.
         if (res.status === 409) void sync();
         return;
@@ -95,7 +101,9 @@ export default function CheckoutPage() {
       clear();
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
-      setPlaceError("Network error — check your connection and try again.");
+      const message = "Network error — check your connection and try again.";
+      setPlaceError(message);
+      toast.error(message);
     } finally {
       setPlacing(false);
     }
@@ -128,10 +136,10 @@ export default function CheckoutPage() {
   if (count === 0) {
     return (
       <div className="mx-auto flex max-w-3xl flex-col items-center gap-5 px-6 py-24 text-center">
-        <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15 text-primary">
-          <Wallet className="h-8 w-8" />
+        <span className="flex h-16 w-16 items-center justify-center rounded-none border-2 border-primary bg-surface text-primary pixel-shadow-dark">
+          <Wallet className="h-8 w-8" aria-hidden />
         </span>
-        <h1 className="font-display text-2xl">Nothing to check out</h1>
+        <h1 className="font-display text-lg text-pixel sm:text-xl">Nothing to check out</h1>
         <p className="max-w-md text-muted-foreground">
           Add items to your cart first, then pay with USDT (BEP20) or Litecoin and open a
           Discord ticket.
@@ -147,7 +155,7 @@ export default function CheckoutPage() {
   const asset = cryptoAssets.find((a) => a.id === assetId) ?? cryptoAssets[0];
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-      <h1 className="mb-2 font-display text-3xl sm:text-4xl">Checkout</h1>
+      <h1 className="mb-3 font-display text-xl text-pixel sm:text-2xl">Checkout</h1>
       <p className="mb-8 text-sm text-muted-foreground">
         Step 1 of 2 — review your order and choose a payment method. You&apos;ll get
         payment details on the next step.
@@ -155,12 +163,12 @@ export default function CheckoutPage() {
 
       <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
         <section>
-          <h2 className="mb-4 font-display text-lg">Order review</h2>
-          <div className="space-y-2 rounded-2xl border border-border bg-card p-5">
+          <h2 className="mb-4 font-display text-sm leading-relaxed">Order review</h2>
+          <div className="space-y-2 rounded-none border-2 border-border bg-card p-5">
             {items.map((item) => (
               <div
                 key={item.product.id}
-                className="flex items-center justify-between gap-3 border-b border-border py-3 last:border-b-0 last:pb-0"
+                className="flex items-center justify-between gap-3 border-b-2 border-border py-3 last:border-b-0 last:pb-0"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{item.product.title}</p>
@@ -172,26 +180,26 @@ export default function CheckoutPage() {
                 <span className="text-sm">{formatPrice(item.product.price * item.qty)}</span>
               </div>
             ))}
-            <div className="flex justify-between border-t border-border pt-3 font-display text-base">
+            <div className="flex justify-between border-t-2 border-border pt-3 font-display text-xs">
               <span>Total</span>
-              <span>{formatPrice(subtotal)}</span>
+              <span className="text-accent">{formatPrice(subtotal)}</span>
             </div>
           </div>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <div className="flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-3 text-sm">
-              <MessagesSquare className="h-5 w-5 text-[#8a93f5]" />
+            <div className="flex items-center gap-2 rounded-none border-2 border-border bg-surface px-4 py-3 text-sm">
+              <MessagesSquare className="h-5 w-5 text-[#8a93f5]" aria-hidden />
               Delivered via Discord
             </div>
-            <div className="flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-3 text-sm">
-              <Clock className="h-5 w-5 text-secondary" />
+            <div className="flex items-center gap-2 rounded-none border-2 border-border bg-surface px-4 py-3 text-sm">
+              <Clock className="h-5 w-5 text-secondary" aria-hidden />
               Fast on confirm
             </div>
           </div>
         </section>
 
         <section>
-          <h2 className="mb-4 font-display text-lg">Payment method</h2>
+          <h2 className="mb-4 font-display text-sm leading-relaxed">Payment method</h2>
 
           <div className="grid grid-cols-2 gap-3">
             {cryptoAssets.map((a) => (
@@ -199,23 +207,25 @@ export default function CheckoutPage() {
                 key={a.id}
                 type="button"
                 onClick={() => setAssetId(a.id)}
+                aria-pressed={a.id === assetId}
                 className={cn(
-                  "flex flex-col gap-1 rounded-2xl border p-4 text-left transition-all",
+                  "flex cursor-pointer flex-col gap-1.5 rounded-none border-2 p-4 text-left transition-colors",
                   a.id === assetId
-                    ? "border-primary bg-primary/10 shadow-[0_0_0_1px_rgba(124,58,237,0.5)]"
-                    : "border-border bg-card hover:border-primary/50",
+                    ? "border-primary bg-primary/10 pixel-shadow-dark"
+                    : "border-border bg-card hover:border-secondary",
                 )}
               >
-                <span className="flex items-center gap-2 font-display">
-                  <Coins className="h-4 w-4 text-primary" /> {a.symbol}
+                <span className="flex items-center gap-2 font-display text-[10px] uppercase">
+                  <Coins className={cn("h-4 w-4", a.id === assetId ? "text-primary" : "text-secondary")} aria-hidden />{" "}
+                  {a.symbol}
                 </span>
                 <span className="text-xs text-muted-foreground">{a.network}</span>
               </button>
             ))}
           </div>
 
-          <div className="mt-5 rounded-2xl border border-border bg-card p-6">
-            <h3 className="font-display text-base">How it works</h3>
+          <div className="mt-5 rounded-none border-2 border-border bg-card p-6 pixel-shadow-dark">
+            <h3 className="font-display text-xs leading-relaxed">How it works</h3>
             <ol className="mt-3 space-y-2 text-sm text-muted-foreground">
               <li className="flex gap-2">
                 <span className="text-primary">1.</span> Place your order — you&apos;ll
@@ -245,7 +255,7 @@ export default function CheckoutPage() {
             </Button>
             {placeError && (
               <p
-                className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-center text-sm text-destructive"
+                className="mt-3 rounded-none border-2 border-destructive bg-destructive/10 p-3 text-center text-sm text-destructive"
                 role="alert"
               >
                 {placeError}
@@ -285,13 +295,13 @@ function PaymentInstructions({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-      <div className="rounded-3xl border border-border bg-card p-6 sm:p-8">
+      <div className="rounded-none border-2 border-border bg-card p-6 pixel-shadow-dark sm:p-8">
         <div className="flex items-center gap-3">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-success/15 text-success">
-            <ReceiptText className="h-6 w-6" />
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-none border-2 border-success bg-background text-success">
+            <ReceiptText className="h-6 w-6" aria-hidden />
           </span>
           <div>
-            <h1 className="font-display text-2xl">Order placed</h1>
+            <h1 className="font-display text-base leading-relaxed text-pixel sm:text-lg">Order placed</h1>
             <p className="text-sm text-muted-foreground">
               Step 2 of 2 — complete your {asset.symbol} payment
             </p>
@@ -299,28 +309,28 @@ function PaymentInstructions({
         </div>
 
         {/* Order summary */}
-        <div className="mt-6 rounded-2xl border border-border bg-surface p-4 text-sm">
+        <div className="mt-6 rounded-none border-2 border-border bg-surface p-4 text-sm">
           <div className="flex items-center justify-between gap-3">
             <span className="text-muted-foreground">Order ID</span>
             <span className="inline-flex items-center gap-2">
-              <span className="font-mono font-semibold">{order.id}</span>
+              <span className="font-display text-[10px] text-secondary">{order.id}</span>
               <button
                 type="button"
                 onClick={() => copy(order.id, setCopiedOrder)}
-                className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:text-foreground"
+                className="inline-flex h-7 w-7 cursor-pointer items-center justify-center rounded-none border-2 border-border text-muted-foreground transition-colors hover:border-secondary hover:text-foreground"
                 aria-label="Copy order ID"
               >
                 {copiedOrder ? (
-                  <Check className="h-3.5 w-3.5 text-success" />
+                  <Check className="h-3.5 w-3.5 text-success" aria-hidden />
                 ) : (
-                  <Copy className="h-3.5 w-3.5" />
+                  <Copy className="h-3.5 w-3.5" aria-hidden />
                 )}
               </button>
             </span>
           </div>
           <div className="mt-2 flex justify-between">
             <span className="text-muted-foreground">Amount due</span>
-            <span className="font-semibold">{formatPrice(order.total)} in {asset.symbol}</span>
+            <span className="font-display text-[10px] text-accent">{formatPrice(order.total)} in {asset.symbol}</span>
           </div>
           <div className="mt-2 flex justify-between">
             <span className="text-muted-foreground">Method</span>
@@ -328,22 +338,22 @@ function PaymentInstructions({
           </div>
           <div className="mt-2 flex justify-between">
             <span className="text-muted-foreground">Status</span>
-            <span className="inline-flex items-center gap-1.5 text-amber-400">
-              <Clock className="h-3.5 w-3.5" /> Awaiting payment
+            <span className="inline-flex items-center gap-1.5 text-accent">
+              <Clock className="h-3.5 w-3.5" aria-hidden /> Awaiting payment
             </span>
           </div>
         </div>
 
         {/* Payment details */}
-        <div className="mt-5 flex flex-col items-center gap-4 rounded-2xl border border-border bg-surface p-5">
-          <div className="rounded-2xl bg-[#0b0614] p-3">
+        <div className="mt-5 flex flex-col items-center gap-4 rounded-none border-2 border-border bg-surface p-5">
+          <div className="rounded-none border-2 border-accent bg-[#1a0033] p-3">
             <QRCodeSVG
               value={asset.deepLink(order.total)}
               size={172}
               level="M"
               marginSize={2}
-              bgColor="#0b0614"
-              fgColor="#f5f0ff"
+              bgColor="#1a0033"
+              fgColor="#f8f5ff"
             />
           </div>
           <div className="w-full">
@@ -351,7 +361,7 @@ function PaymentInstructions({
               <span>Wallet address</span>
               <Badge variant="muted">{asset.network}</Badge>
             </div>
-            <div className="mt-2 flex items-center gap-2 rounded-xl border border-border bg-background p-3">
+            <div className="mt-2 flex items-center gap-2 rounded-none border-2 border-border bg-background p-3">
               <code className="flex-1 break-all text-sm">{asset.address}</code>
               <Button
                 type="button"
@@ -361,16 +371,16 @@ function PaymentInstructions({
                 className="shrink-0"
               >
                 {copiedAddress ? (
-                  <Check className="h-4 w-4 text-success" />
+                  <Check className="h-4 w-4 text-success" aria-hidden />
                 ) : (
-                  <Copy className="h-4 w-4" />
+                  <Copy className="h-4 w-4" aria-hidden />
                 )}
                 {copiedAddress ? "Copied" : "Copy"}
               </Button>
             </div>
           </div>
-          <p className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-left text-xs text-amber-300">
-            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+          <p className="flex items-start gap-2 rounded-none border-2 border-accent bg-accent/10 p-3 text-left text-xs text-accent">
+            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
             Send only {asset.symbol} on the {asset.network} network. Funds sent on the
             wrong network cannot be recovered.
           </p>

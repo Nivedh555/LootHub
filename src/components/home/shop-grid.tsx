@@ -69,7 +69,7 @@ export function ShopGrid({ products }: { products: Product[] }) {
               active={game === g}
               onClick={() => setGame(g)}
               label={g}
-              icon={<GameIcon game={g} className="h-4 w-4 rounded-[4px]" />}
+              icon={<GameIcon game={g} className="h-4 w-4 rounded-none" />}
               count={counts[g] ?? 0}
             />
           ))}
@@ -108,17 +108,17 @@ export function ShopGrid({ products }: { products: Product[] }) {
           <button
             type="button"
             onClick={() => { setQ(""); setGame("All"); }}
-            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+            className="inline-flex items-center gap-1 font-display text-[9px] uppercase text-secondary hover:underline"
           >
-            <X className="h-3 w-3" /> Clear
+            <X className="h-3 w-3" aria-hidden /> Clear
           </button>
         </div>
       )}
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border py-16 text-center">
-          <Package className="h-8 w-8 text-muted-foreground" aria-hidden />
-          <p className="font-display">No items match.</p>
+        <div className="flex flex-col items-center gap-3 rounded-none border-2 border-dashed border-border py-16 text-center">
+          <Package className="h-8 w-8 text-secondary" aria-hidden />
+          <p className="font-display text-[11px] leading-relaxed">No items match.</p>
           <p className="text-sm text-muted-foreground">Try another game or clear the search.</p>
           <Button variant="outline" size="sm" onClick={() => { setQ(""); setGame("All"); }}>
             <SlidersHorizontal className="h-4 w-4" /> Reset
@@ -153,15 +153,15 @@ function GameChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+        "inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-none border-2 px-3 py-2 font-display text-[9px] uppercase transition-colors",
         active
           ? "border-primary bg-primary text-primary-foreground"
-          : "border-border bg-surface text-muted-foreground hover:text-foreground hover:border-primary/50",
+          : "border-border bg-surface text-muted-foreground hover:border-secondary hover:text-foreground",
       )}
     >
       {icon}
       <span className="whitespace-nowrap">{label}</span>
-      <span className={cn("text-[10px]", active ? "text-primary-foreground/80" : "text-muted-foreground/70")}>
+      <span className={cn(active ? "text-primary-foreground/70" : "text-muted-foreground/70")}>
         {formatCount(count)}
       </span>
     </button>

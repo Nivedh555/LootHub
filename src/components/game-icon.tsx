@@ -22,7 +22,7 @@ export function GameIcon({
       width={64}
       height={64}
       unoptimized
-      className={cn("rounded-md object-cover", className)}
+      className={cn("rounded-none object-cover", className)}
     />
   );
 }

@@ -21,7 +21,7 @@ export function ProductCard({
     <SpotlightCard
       as="article"
       className={cn(
-        "group flex h-full flex-col transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/60 hover:shadow-[0_24px_60px_-20px_rgba(124,58,237,0.55)]",
+        "group flex h-full flex-col",
         className,
       )}
     >
@@ -32,19 +32,18 @@ export function ProductCard({
       >
         <ProductCover
           product={product}
-          className="h-full w-full transition-transform duration-500 ease-out group-hover:scale-110"
+          className="h-full w-full transition-transform duration-300 ease-out group-hover:scale-105"
         />
-        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card to-transparent opacity-70" aria-hidden />
-        <div className="absolute left-3 top-3 flex flex-wrap gap-1.5">
+        <div className="absolute left-2 top-2 flex flex-wrap gap-1.5">
           {product.rarity && <Badge variant="default">{product.rarity}</Badge>}
           {product.featured && <Badge variant="accent">Featured</Badge>}
         </div>
         {/* stock indicator */}
-        <div className="absolute bottom-2.5 left-3 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-background/70 px-2 py-0.5 text-[11px] font-semibold backdrop-blur-sm">
+        <div className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 rounded-none border-2 border-border bg-background px-2 py-1 font-display text-[8px] uppercase">
           <span
             className={cn(
-              "h-1.5 w-1.5 rounded-full",
-              product.stock <= 0 ? "bg-destructive" : low ? "bg-amber-400" : "bg-success",
+              "h-1.5 w-1.5 rounded-none",
+              product.stock <= 0 ? "bg-destructive" : low ? "bg-accent" : "bg-success",
             )}
             aria-hidden
           />
@@ -52,24 +51,24 @@ export function ProductCard({
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+      <div className="flex flex-1 flex-col gap-2 border-t-2 border-border p-4">
+        <div className="flex items-center gap-1.5">
           <Package className="h-3.5 w-3.5 text-secondary" aria-hidden />
-          <span className="font-semibold text-secondary">{product.game}</span>
+          <span className="font-display text-[8px] uppercase text-secondary">{product.game}</span>
         </div>
 
         <Link
           href={`/product/${product.id}`}
-          className="font-display text-base leading-tight text-foreground transition-colors hover:text-primary"
+          className="font-display text-[11px] leading-relaxed text-foreground transition-colors hover:text-primary"
         >
           <span className="line-clamp-2">{product.title}</span>
         </Link>
 
         <div className="mt-auto space-y-3 pt-2">
-          <div className="flex items-center justify-between">
-            <span className="font-display text-xl font-bold text-foreground">{formatPrice(product.price)}</span>
-            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-              <Boxes className="h-3.5 w-3.5" aria-hidden /> Discord delivery
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-display text-sm text-accent">{formatPrice(product.price)}</span>
+            <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+              <Boxes className="h-3.5 w-3.5" aria-hidden /> Discord
             </span>
           </div>
           <CardActions product={product} />

@@ -51,8 +51,10 @@ export async function POST(request: Request) {
 
   const id = `item-${Date.now().toString(36)}`;
   const imageFile = image instanceof File && image.size > 0 ? image : null;
-  if (imageFile && imageFile.size > 8 * 1024 * 1024) {
-    return NextResponse.json({ error: "Image must be under 8 MB." }, { status: 400 });
+  // Backstop only: the admin form compresses covers client-side first.
+  // 4 MB keeps this under the ~4.5 MB serverless request-body limit.
+  if (imageFile && imageFile.size > 4 * 1024 * 1024) {
+    return NextResponse.json({ error: "Image must be under 4 MB." }, { status: 400 });
   }
   if (imageFile && !imageFile.type.startsWith("image/")) {
     return NextResponse.json({ error: "Cover must be an image file." }, { status: 400 });

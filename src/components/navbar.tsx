@@ -51,7 +51,7 @@ export function Navbar() {
       <div className="mx-auto flex h-[4.5rem] max-w-7xl items-center gap-4 px-4 sm:px-6 lg:gap-6">
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex shrink-0 items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           aria-label="LootHub home"
         >
           <Image
@@ -59,22 +59,22 @@ export function Navbar() {
             alt=""
             width={44}
             height={44}
-            className="h-11 w-11 rounded-lg object-contain ring-1 ring-primary/40"
+            className="h-11 w-11 rounded-none border-2 border-primary object-contain"
             preload
           />
-          <span className="font-display text-xl font-bold tracking-wide sm:text-2xl">LootHub</span>
+          <span className="text-pixel font-display text-sm tracking-wide sm:text-base">LootHub</span>
         </Link>
 
         <form onSubmit={submit} className="group relative ml-2 hidden flex-1 max-w-md md:block" role="search">
           <Search
-            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary"
+            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-secondary"
             aria-hidden
           />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search items, pets, knives…"
-            className="border-white/10 bg-white/5 pl-10 backdrop-blur-md transition-all duration-300 focus:border-primary/60 focus:bg-surface/80 focus:shadow-[0_0_24px_-8px_rgba(124,58,237,0.6)]"
+            className="pl-10"
             aria-label="Search items"
           />
         </form>
@@ -87,15 +87,15 @@ export function Navbar() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "relative rounded-lg px-4 py-2.5 font-display text-[15px] font-semibold tracking-wide transition-colors duration-200",
-                  active ? "text-primary" : "text-foreground/75 hover:text-foreground",
+                  "relative px-4 py-2.5 font-display text-[10px] uppercase tracking-wide transition-colors duration-200",
+                  active ? "text-secondary" : "text-foreground/75 hover:text-foreground",
                 )}
               >
                 {item.label}
                 {active && (
                   <motion.span
                     layoutId="nav-active"
-                    className="absolute inset-x-3 -bottom-0.5 h-0.5 rounded-full bg-primary shadow-[0_0_8px_rgba(124,58,237,0.9)]"
+                    className="absolute inset-x-3 -bottom-0.5 h-[3px] rounded-none bg-secondary"
                     transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 380, damping: 32 }}
                   />
                 )}
@@ -107,7 +107,7 @@ export function Navbar() {
         <div className="ml-auto flex items-center gap-2 lg:ml-3">
           <Link
             href="/admin"
-            className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "text-muted-foreground hover:text-primary")}
+            className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "text-muted-foreground hover:text-secondary")}
             aria-label="Owner login"
             title="Owner login"
           >
@@ -132,7 +132,7 @@ export function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-            className="overflow-hidden border-t border-border bg-background/95 backdrop-blur-xl lg:hidden"
+            className="overflow-hidden border-t-2 border-border bg-background/95 backdrop-blur-xl lg:hidden"
           >
             <div className="mx-auto max-w-7xl space-y-3 px-4 py-4 sm:px-6">
               <form onSubmit={submit} role="search" className="relative">
@@ -154,7 +154,7 @@ export function Navbar() {
                     key={item.href}
                     href={item.href}
                     onClick={() => setOpen(false)}
-                    className="rounded-lg px-3 py-2.5 font-display text-base font-semibold text-foreground/80 transition-colors hover:bg-surface-2 hover:text-primary"
+                    className="px-3 py-2.5 font-display text-[11px] uppercase text-foreground/80 transition-colors hover:bg-surface-2 hover:text-secondary"
                   >
                     {item.label}
                   </Link>
@@ -162,7 +162,7 @@ export function Navbar() {
                 <Link
                   href="/admin"
                   onClick={() => setOpen(false)}
-                  className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-2 hover:text-primary"
+                  className="mt-1 inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-2 hover:text-secondary"
                 >
                   <Lock className="h-4 w-4" /> Owner login
                 </Link>

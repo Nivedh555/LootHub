@@ -41,14 +41,14 @@ export function FeaturedCarousel({ products }: { products: Product[] }) {
   return (
     <div>
       <div className="mb-5 flex items-center justify-between gap-3">
-        <div className="flex gap-1 rounded-xl border border-white/10 bg-white/5 p-1 backdrop-blur-md">
+        <div className="flex gap-1 rounded-none border-2 border-border bg-surface p-1">
           {TABS.map((t) => (
             <button
               key={t.key}
               type="button"
               onClick={() => setTab(t.key)}
               className={cn(
-                "relative inline-flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors duration-200",
+                "relative inline-flex cursor-pointer items-center gap-1.5 rounded-none px-3 py-2 font-display text-[9px] uppercase transition-colors duration-200",
                 tab === t.key ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground",
               )}
               aria-pressed={tab === t.key}
@@ -56,7 +56,7 @@ export function FeaturedCarousel({ products }: { products: Product[] }) {
               {tab === t.key && (
                 <motion.span
                   layoutId="featured-tab"
-                  className="absolute inset-0 rounded-lg bg-primary shadow-[0_0_18px_-4px_rgba(124,58,237,0.8)]"
+                  className="absolute inset-0 rounded-none bg-primary"
                   transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 400, damping: 34 }}
                 />
               )}
@@ -77,8 +77,8 @@ export function FeaturedCarousel({ products }: { products: Product[] }) {
             </CarouselItem>
           ))}
         </CarouselContent>
-        <CarouselPrevious className="-top-[3.25rem] left-auto right-12 hidden size-10 rounded-xl border-white/10 bg-white/5 backdrop-blur-md hover:border-primary/50 hover:bg-white/10 sm:inline-flex" />
-        <CarouselNext className="-top-[3.25rem] right-0 hidden size-10 rounded-xl border-white/10 bg-white/5 backdrop-blur-md hover:border-primary/50 hover:bg-white/10 sm:inline-flex" />
+        <CarouselPrevious className="-top-[3.25rem] left-auto right-12 hidden size-10 rounded-none border-2 border-border bg-surface hover:border-secondary sm:inline-flex" />
+        <CarouselNext className="-top-[3.25rem] right-0 hidden size-10 rounded-none border-2 border-border bg-surface hover:border-secondary sm:inline-flex" />
       </Carousel>
     </div>
   );

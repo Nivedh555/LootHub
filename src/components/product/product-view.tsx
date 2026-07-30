@@ -19,11 +19,11 @@ export function ProductView({
   return (
     <article className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <nav aria-label="Breadcrumb" className="mb-6 flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
-        <Link href="/" className="hover:text-primary">Home</Link>
+        <Link href="/" className="hover:text-secondary">Home</Link>
         <ChevronRight className="h-3 w-3" aria-hidden />
-        <Link href="/browse" className="hover:text-primary">Browse</Link>
+        <Link href="/browse" className="hover:text-secondary">Browse</Link>
         <ChevronRight className="h-3 w-3" aria-hidden />
-        <Link href={`/browse?game=${encodeURIComponent(product.game)}`} className="hover:text-primary">
+        <Link href={`/browse?game=${encodeURIComponent(product.game)}`} className="hover:text-secondary">
           {product.game}
         </Link>
         <ChevronRight className="h-3 w-3" aria-hidden />
@@ -31,7 +31,7 @@ export function ProductView({
       </nav>
 
       <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr]">
-        <div className="relative overflow-hidden rounded-3xl border border-border bg-card">
+        <div className="relative overflow-hidden rounded-none border-2 border-border bg-card pixel-shadow-dark">
           <ProductCover product={product} className="h-full w-full" />
           <div className="absolute left-4 top-4 flex flex-wrap gap-1.5">
             {product.rarity && <Badge variant="default">{product.rarity}</Badge>}
@@ -41,7 +41,7 @@ export function ProductView({
 
         <div className="flex flex-col gap-6">
           <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="inline-flex items-center gap-1.5 font-semibold text-secondary">
+            <span className="inline-flex items-center gap-1.5 font-display text-[9px] uppercase text-secondary">
               <Package className="h-4 w-4" aria-hidden />
               {product.game}
             </span>
@@ -51,7 +51,7 @@ export function ProductView({
             </span>
           </div>
 
-          <h1 className="font-display text-3xl leading-tight sm:text-4xl">{product.title}</h1>
+          <h1 className="font-display text-lg leading-relaxed text-pixel sm:text-xl">{product.title}</h1>
           <p className="max-w-prose text-muted-foreground">{product.description}</p>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -75,14 +75,16 @@ export function ProductView({
             <Trust icon={Boxes} label="In-game trade" />
           </div>
 
-          <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="rounded-none border-2 border-[#5865F2] bg-card p-4">
             <div className="flex items-start gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#5865F2]/15 text-[#8a93f5]">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none border-2 border-[#5865F2] bg-background text-[#8a93f5]">
                 <MessagesSquare className="h-5 w-5" aria-hidden />
               </span>
               <div className="flex-1">
-                <div className="font-semibold">Pay crypto → open a Discord ticket</div>
-                <p className="mt-1 text-sm text-muted-foreground">
+                <div className="font-display text-[10px] uppercase leading-relaxed">
+                  Pay crypto → open a Discord ticket
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
                   After checkout, you land in {discord.serverName} with your order ID. The
                   owner confirms and trades the item into your inventory.
                 </p>
@@ -92,7 +94,7 @@ export function ProductView({
 
           <div className="flex flex-wrap gap-1.5">
             {product.tags.map((t) => (
-              <span key={t} className="rounded-full border border-border bg-surface px-2.5 py-0.5 text-xs text-muted-foreground">
+              <span key={t} className="rounded-none border-2 border-border bg-surface px-2 py-1 text-xs text-muted-foreground">
                 #{t}
               </span>
             ))}
@@ -103,8 +105,11 @@ export function ProductView({
       {related.length > 0 && (
         <section className="mt-16">
           <div className="mb-4 flex items-baseline justify-between">
-            <h2 className="font-display text-2xl">More like this</h2>
-            <Link href={`/browse?game=${encodeURIComponent(product.game)}`} className="text-sm font-semibold text-primary hover:underline">
+            <h2 className="font-display text-base leading-relaxed sm:text-lg">More like this</h2>
+            <Link
+              href={`/browse?game=${encodeURIComponent(product.game)}`}
+              className="font-display text-[9px] uppercase text-secondary hover:underline"
+            >
               More in {product.game}
             </Link>
           </div>
@@ -124,8 +129,8 @@ export function ProductView({
 
 function Trust({ icon: Icon, label }: { icon: typeof ShieldCheck; label: string }) {
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5">
-      <Icon className="h-4 w-4 text-primary" aria-hidden />
+    <div className="flex items-center gap-2 rounded-none border-2 border-border bg-surface px-3 py-2.5">
+      <Icon className="h-4 w-4 text-secondary" aria-hidden />
       <span className="text-xs font-medium">{label}</span>
     </div>
   );

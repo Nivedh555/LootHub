@@ -33,8 +33,7 @@ export function FloatingCart() {
       <Link
         href="/cart"
         aria-label={`Cart with ${count} item${count === 1 ? "" : "s"}`}
-        className="group relative flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/40 bg-surface/90 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        style={{ boxShadow: "0 0 0 1px rgba(124,58,237,0.25), 0 8px 32px -8px rgba(124,58,237,0.65)" }}
+        className="group relative flex h-14 w-14 items-center justify-center rounded-none border-2 border-primary bg-surface pixel-shadow-dark transition-colors duration-100 hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <ShoppingBag className="h-6 w-6 text-foreground transition-colors group-hover:text-primary" aria-hidden />
         <AnimatePresence>
@@ -45,7 +44,7 @@ export function FloatingCart() {
               animate={{ scale: 1 }}
               exit={{ scale: 0, opacity: 0 }}
               transition={{ type: "spring", stiffness: 500, damping: 22 }}
-              className="absolute -right-1.5 -top-1.5 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-primary px-1.5 text-xs font-bold text-primary-foreground shadow-[0_0_12px_rgba(124,58,237,0.9)] ring-2 ring-background"
+              className="absolute -right-2 -top-2 inline-flex h-6 min-w-6 items-center justify-center rounded-none border-2 border-background bg-accent px-1 font-display text-[9px] text-accent-foreground"
             >
               {count}
             </motion.span>

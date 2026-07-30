@@ -2,15 +2,16 @@ import Image from "next/image";
 import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
+/** Flat two-tone arcade palettes: [base, accent block]. No gradients — pixel art is flat. */
 const palettes: [string, string][] = [
-  ["#7c3aed", "#4c1d95"],
-  ["#a78bfa", "#7c3aed"],
-  ["#f59e0b", "#dc2626"],
-  ["#8b5cf6", "#ec4899"],
-  ["#6d28d9", "#a78bfa"],
-  ["#ec4899", "#7c3aed"],
-  ["#f43f5e", "#f59e0b"],
-  ["#c4b5fd", "#6d28d9"],
+  ["#3c096c", "#ff00ff"],
+  ["#240046", "#00ffff"],
+  ["#5a189a", "#ffd700"],
+  ["#7b2cbf", "#00ff88"],
+  ["#3c096c", "#ff3355"],
+  ["#240046", "#c17aff"],
+  ["#5a189a", "#ff4dd2"],
+  ["#7b2cbf", "#00e5a0"],
 ];
 
 function hash(str: string): number {
@@ -45,12 +46,16 @@ export function ProductCover({
   }
 
   const seed = hash(product.coverSeed);
-  const [c1, c2] = palettes[seed % palettes.length];
+  const [base, accent] = palettes[seed % palettes.length];
   const blockX = (seed % 100) / 100;
   const blockY = ((seed >> 3) % 100) / 100;
-  const safeId = product.id.replace(/[^a-z0-9]/gi, "");
+  // Press Start 2P is very wide \u2014 keep the title short so it never overruns the frame.
   const title =
-    product.title.length > 26 ? product.title.slice(0, 25) + "\u2026" : product.title;
+    product.title.length > 17 ? product.title.slice(0, 16) + "\u2026" : product.title;
+  const game =
+    product.game.length > 16 ? product.game.slice(0, 15) + "\u2026" : product.game;
+  // Snap block positions to an 8px grid so every edge lands on a "pixel".
+  const snap = (n: number) => Math.round(n / 8) * 8;
 
   return (
     <div className={cn("relative h-full w-full overflow-hidden", className)}>
@@ -61,72 +66,60 @@ export function ProductCover({
         role="img"
         aria-label={`${product.title} cover art`}
       >
-        <defs>
-          <linearGradient id={`bg-${safeId}`} x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor={c1} />
-            <stop offset="100%" stopColor={c2} />
-          </linearGradient>
-          <linearGradient id={`fade-${safeId}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="40%" stopColor="#0b0614" stopOpacity="0" />
-            <stop offset="100%" stopColor="#0b0614" stopOpacity="0.95" />
-          </linearGradient>
-        </defs>
-        <rect width="400" height="300" fill={`url(#bg-${safeId})`} />
+        <rect width="400" height="300" fill={base} />
+        {/* Flat pixel blocks — sharp corners, grid-snapped */}
         <rect
-          x={20 + blockX * 200}
-          y={26 + blockY * 116}
-          width="124"
-          height="124"
-          rx="18"
-          fill="#ffffff"
-          fillOpacity="0.08"
+          x={snap(24 + blockX * 176)}
+          y={snap(24 + blockY * 96)}
+          width="96"
+          height="96"
+          fill={accent}
+          fillOpacity="0.9"
         />
         <rect
-          x={168 + blockX * 150}
-          y={120 + blockY * 84}
-          width="84"
-          height="84"
-          rx="16"
-          fill="#000000"
-          fillOpacity="0.14"
+          x={snap(176 + blockX * 144)}
+          y={snap(112 + blockY * 72)}
+          width="64"
+          height="64"
+          fill="#1a0033"
+          fillOpacity="0.5"
         />
-        <circle
-          cx={324 - blockX * 80}
-          cy={74 + blockY * 70}
-          r="44"
-          fill="#ffffff"
-          fillOpacity="0.1"
-        />
-        <rect width="400" height="300" fill={`url(#fade-${safeId})`} />
         <rect
-          x="16"
-          y="16"
-          width={product.game.length * 7 + 16}
-          height="22"
-          rx="11"
-          fill="#0b0614"
-          fillOpacity="0.55"
+          x={snap(288 - blockX * 72)}
+          y={snap(48 + blockY * 64)}
+          width="48"
+          height="48"
+          fill={accent}
+          fillOpacity="0.45"
         />
+        {/* Bottom plate keeps the labels legible over any block */}
+        <rect x="0" y="216" width="400" height="84" fill="#1a0033" fillOpacity="0.88" />
+        <rect x="0" y="216" width="400" height="4" fill={accent} />
         <text
-          x="24"
-          y="32"
-          fontFamily="'Orbitron', sans-serif"
-          fontSize="11"
-          fill="#f5f0ff"
-          letterSpacing="1.4"
+          x="16"
+          y="36"
+          fontFamily="'Press Start 2P', monospace"
+          fontSize="10"
+          fill={accent}
         >
-          {product.game.toUpperCase()}
+          {game.toUpperCase()}
         </text>
-        <text x="20" y="262" fontFamily="'Orbitron', sans-serif" fontSize="20" fill="#ffffff">
+        <text
+          x="16"
+          y="252"
+          fontFamily="'Press Start 2P', monospace"
+          fontSize="14"
+          fill="#f8f5ff"
+        >
           {title}
         </text>
         {product.rarity && (
           <text
-            x="20"
-            y="284"
+            x="16"
+            y="280"
             fontFamily="'Chakra Petch', sans-serif"
-            fontSize="12"
-            fill="#a78bfa"
+            fontSize="14"
+            fill="#c0a8e8"
           >
             {product.rarity}
           </text>

@@ -75,26 +75,26 @@ export function BrowseClient({
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <div className="mb-8">
-        <h1 className="font-display text-3xl sm:text-4xl">Marketplace</h1>
-        <p className="mt-1 text-muted-foreground">
+        <h1 className="font-display text-xl text-pixel sm:text-2xl">Marketplace</h1>
+        <p className="mt-3 text-muted-foreground">
           {filtered.length} item{filtered.length === 1 ? "" : "s"} · crypto checkout · Discord delivery
         </p>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <div className="rounded-2xl border border-border bg-card p-5">
+          <div className="rounded-none border-2 border-border bg-card p-5">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="inline-flex items-center gap-2 font-display text-sm uppercase tracking-wide">
-                <SlidersHorizontal className="h-4 w-4" /> Filters
+              <h2 className="inline-flex items-center gap-2 font-display text-[10px] uppercase tracking-wide">
+                <SlidersHorizontal className="h-4 w-4 text-secondary" aria-hidden /> Filters
               </h2>
               {activeCount > 0 && (
                 <button
                   type="button"
                   onClick={reset}
-                  className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                  className="inline-flex cursor-pointer items-center gap-1 font-display text-[9px] uppercase text-secondary hover:underline"
                 >
-                  <X className="h-3 w-3" /> Clear ({activeCount})
+                  <X className="h-3 w-3" aria-hidden /> Clear ({activeCount})
                 </button>
               )}
             </div>
@@ -128,7 +128,7 @@ export function BrowseClient({
                       active={game === g}
                       onClick={() => setGame(g as Game)}
                       label={g}
-                      icon={<GameIcon game={g} className="h-4 w-4 rounded-[4px]" />}
+                      icon={<GameIcon game={g} className="h-4 w-4 rounded-none" />}
                     />
                   ))}
                 </div>
@@ -207,10 +207,10 @@ function GameChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-left text-sm font-medium transition-colors",
+        "inline-flex cursor-pointer items-center gap-2 rounded-none border-2 px-3 py-2 text-left font-display text-[9px] uppercase transition-colors",
         active
           ? "border-primary bg-primary text-primary-foreground"
-          : "border-border bg-surface text-muted-foreground hover:text-foreground hover:border-primary/50",
+          : "border-border bg-surface text-muted-foreground hover:border-secondary hover:text-foreground",
       )}
     >
       {icon}
@@ -221,11 +221,11 @@ function GameChip({
 
 function EmptyState({ onReset }: { onReset: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border py-20 text-center">
-      <Search className="h-10 w-10 text-muted-foreground" aria-hidden />
+    <div className="flex flex-col items-center gap-4 rounded-none border-2 border-dashed border-border py-20 text-center">
+      <Search className="h-10 w-10 text-secondary" aria-hidden />
       <div>
-        <p className="font-display text-lg">No items match those filters</p>
-        <p className="text-sm text-muted-foreground">Try a different game or relax your price filter.</p>
+        <p className="font-display text-[11px] leading-relaxed">No items match those filters</p>
+        <p className="mt-2 text-sm text-muted-foreground">Try a different game or relax your price filter.</p>
       </div>
       <Button variant="outline" size="sm" onClick={onReset}>Clear filters</Button>
     </div>
