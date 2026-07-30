@@ -337,6 +337,12 @@ function PaymentInstructions({
 
         {/* Payment details */}
         <div className="mt-5 flex flex-col items-center gap-4 rounded-2xl border border-border bg-surface p-5">
+          <div className="w-full text-center">
+            <Badge variant="muted" className="mb-2 text-xs">
+              {asset.label} — {asset.network}
+            </Badge>
+            <h2 className="font-display text-lg">{asset.symbol} Payment</h2>
+          </div>
           <div className="rounded-2xl bg-[#0b0614] p-3">
             <QRCodeSVG
               value={asset.deepLink(order.total)}
