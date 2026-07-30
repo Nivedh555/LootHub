@@ -27,8 +27,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { useToast } from "@/components/ui/toast";
-import { compressImage } from "@/lib/compress-image";
 import { formatPrice } from "@/lib/format";
 import { games } from "@/config/games";
 import { cn } from "@/lib/utils";
@@ -60,7 +58,6 @@ export function Admin({
 
 function Gate() {
   const router = useRouter();
-  const toast = useToast();
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -77,15 +74,12 @@ function Gate() {
       });
       if (!res.ok) {
         const json = await res.json().catch(() => null);
-        const message = json?.error ?? "Wrong passcode. Only the store owner can sign in.";
-        setError(message);
-        toast.error(message);
+        setError(json?.error ?? "Wrong passcode. Only the store owner can sign in.");
         return;
       }
       router.refresh();
     } catch {
       setError("Network error. Try again.");
-      toast.error("Network error. Try again.");
     } finally {
       setBusy(false);
     }
@@ -94,17 +88,17 @@ function Gate() {
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6 px-4 py-20 sm:px-6">
       <div className="text-center">
-        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-none border-2 border-primary bg-surface text-primary pixel-shadow-dark">
+        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/15 text-primary">
           <Lock className="h-7 w-7" aria-hidden />
         </span>
-        <h1 className="mt-5 font-display text-lg text-pixel sm:text-xl">Owner dashboard</h1>
-        <p className="mt-3 text-sm text-muted-foreground">
+        <h1 className="mt-4 font-display text-2xl">Owner dashboard</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
           This area is for the store owner only. Enter the passcode to manage
           listings and orders.
         </p>
       </div>
 
-      <form onSubmit={submit} className="space-y-4 rounded-none border-2 border-border bg-card p-6 pixel-shadow-dark">
+      <form onSubmit={submit} className="space-y-4 rounded-2xl border border-border bg-card p-6">
         <div>
           <Label htmlFor="pass" className="mb-2 block">
             Owner passcode
@@ -147,7 +141,6 @@ function Dashboard({
   initialOrders: Order[];
 }) {
   const router = useRouter();
-  const toast = useToast();
   const [list, setList] = useState<Product[]>(initialProducts);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [form, setForm] = useState({ ...empty });
@@ -156,47 +149,22 @@ function Dashboard({
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [compressing, setCompressing] = useState(false);
   const [refreshingOrders, setRefreshingOrders] = useState(false);
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  /**
-   * Shrink the cover in the browser before it ever hits the network, so a
-   * full-resolution phone photo still publishes (serverless bodies cap ~4.5 MB).
-   */
-  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const picked = e.target.files?.[0] ?? null;
-    e.target.value = ""; // allow re-picking the same file after a failure
-    if (!picked) {
-      update("image", null);
-      setImagePreview(null);
-      return;
-    }
-
-    setCompressing(true);
-    let file = picked;
-    try {
-      file = await compressImage(picked);
-    } catch (err) {
-      setCompressing(false);
-      toast.error(err instanceof Error ? err.message : "Could not process that image.");
-      return;
-    }
-
+  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
     update("image", file);
-    const reader = new FileReader();
-    reader.onload = () => {
-      setImagePreview(typeof reader.result === "string" ? reader.result : null);
-      setCompressing(false);
-    };
-    reader.onerror = () => {
-      setCompressing(false);
-      toast.error("Could not preview that image, but it will still upload.");
-    };
-    reader.readAsDataURL(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => setImagePreview(typeof reader.result === "string" ? reader.result : null);
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
   }
 
   function validate(): boolean {
@@ -218,7 +186,6 @@ function Dashboard({
   async function handleAuthFailure(res: Response): Promise<boolean> {
     if (res.status === 401) {
       setServerError("Session expired. Sign in again.");
-      toast.error("Session expired. Sign in again.");
       router.refresh();
       return true;
     }
@@ -245,9 +212,7 @@ function Dashboard({
       if (await handleAuthFailure(res)) return;
       const json = await res.json();
       if (!res.ok) {
-        const message = json?.error ?? "Upload failed.";
-        setServerError(message);
-        toast.error(message);
+        setServerError(json?.error ?? "Upload failed.");
         return;
       }
       const product = json.product as Product;
@@ -255,11 +220,9 @@ function Dashboard({
       setCreated(product);
       setForm({ ...empty });
       setImagePreview(null);
-      toast.success(`"${product.title}" is live on the store.`);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       setServerError("Network error while uploading.");
-      toast.error("Network error while uploading.");
     } finally {
       setSubmitting(false);
     }
@@ -270,16 +233,9 @@ function Dashboard({
     try {
       const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
       if (await handleAuthFailure(res)) return;
-      if (!res.ok) {
-        const json = await res.json().catch(() => null);
-        toast.error(json?.error ?? "Could not remove that item.");
-        return;
-      }
-      setList((prev) => prev.filter((p) => p.id !== id));
-      toast.success("Item removed from the store.");
+      if (res.ok) setList((prev) => prev.filter((p) => p.id !== id));
     } catch {
       setServerError("Network error while deleting.");
-      toast.error("Network error while deleting.");
     }
   }
 
@@ -292,7 +248,7 @@ function Dashboard({
         setOrders(json.orders as Order[]);
       }
     } catch {
-      // Keep the current list — the 30s poll will try again.
+      // keep current list
     } finally {
       setRefreshingOrders(false);
     }
@@ -327,16 +283,12 @@ function Dashboard({
         body: JSON.stringify({ status }),
       });
       if (await handleAuthFailure(res)) return;
-      if (!res.ok) {
-        const json = await res.json().catch(() => null);
-        toast.error(json?.error ?? "Could not update that order.");
-        return;
+      if (res.ok) {
+        const json = await res.json();
+        setOrders((prev) => prev.map((o) => (o.id === id ? (json.order as Order) : o)));
       }
-      const json = await res.json();
-      setOrders((prev) => prev.map((o) => (o.id === id ? (json.order as Order) : o)));
-      toast.success(status === "fulfilled" ? "Order marked fulfilled." : "Order cancelled.");
     } catch {
-      toast.error("Network error while updating the order.");
+      // ignore
     }
   }
 
@@ -344,15 +296,9 @@ function Dashboard({
     try {
       const res = await fetch(`/api/orders/${id}`, { method: "DELETE" });
       if (await handleAuthFailure(res)) return;
-      if (!res.ok) {
-        const json = await res.json().catch(() => null);
-        toast.error(json?.error ?? "Could not delete that order.");
-        return;
-      }
-      setOrders((prev) => prev.filter((o) => o.id !== id));
-      toast.success("Order deleted.");
+      if (res.ok) setOrders((prev) => prev.filter((o) => o.id !== id));
     } catch {
-      toast.error("Network error while deleting the order.");
+      // ignore
     }
   }
 
@@ -373,8 +319,8 @@ function Dashboard({
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-display text-xl text-pixel sm:text-2xl">Owner dashboard</h1>
-          <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
+          <h1 className="font-display text-3xl">Owner dashboard</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Items you publish here appear on the public storefront immediately.
             Orders show up below as buyers check out.
           </p>
@@ -385,25 +331,20 @@ function Dashboard({
       </div>
 
       {serverError && (
-        <div
-          role="alert"
-          className="mb-6 flex items-center gap-2 rounded-none border-2 border-destructive bg-destructive/10 p-4 text-sm text-destructive"
-        >
-          <AlertCircle className="h-5 w-5 shrink-0" /> {serverError}
+        <div className="mb-6 flex items-center gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+          <AlertCircle className="h-5 w-5" /> {serverError}
         </div>
       )}
 
       {created && (
-        <div className="mb-8 flex flex-col items-start gap-4 rounded-none border-2 border-success bg-success/10 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-8 flex flex-col items-start gap-3 rounded-2xl border border-success/40 bg-success/10 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-none border-2 border-success bg-success text-success-foreground">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-success text-success-foreground">
               <Check className="h-5 w-5" />
             </span>
             <div>
-              <p className="font-display text-[11px] uppercase leading-relaxed text-success">
-                Item published
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <p className="font-display">Item published to the store</p>
+              <p className="text-sm text-muted-foreground">
                 &ldquo;{created.title}&rdquo; is now live in the marketplace.
               </p>
             </div>
@@ -422,10 +363,10 @@ function Dashboard({
       {/* Orders */}
       <section className="mb-12">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h2 className="inline-flex flex-wrap items-center gap-3 font-display text-base leading-relaxed sm:text-lg">
-            <ClipboardList className="h-6 w-6 text-secondary" aria-hidden /> Orders
+          <h2 className="inline-flex items-center gap-2 font-display text-2xl">
+            <ClipboardList className="h-6 w-6 text-primary" /> Orders
             {awaiting > 0 && (
-              <span className="rounded-none border-2 border-success bg-success px-2 py-1 font-display text-[9px] uppercase text-success-foreground">
+              <span className="rounded-full bg-success px-2.5 py-0.5 text-xs font-bold text-success-foreground">
                 {awaiting} awaiting payment
               </span>
             )}
@@ -436,24 +377,22 @@ function Dashboard({
         </div>
 
         {orders.length === 0 ? (
-          <p className="rounded-none border-2 border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+          <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             No orders yet. When a buyer checks out, their order appears here with
             an ID they&apos;ll paste in your Discord ticket.
           </p>
         ) : (
-          <div className="rounded-none border-2 border-border bg-card">
+          <div className="overflow-hidden rounded-2xl border border-border">
             {orders.map((o) => (
-              <div key={o.id} className="border-b-2 border-border p-4 last:border-b-0">
+              <div key={o.id} className="border-b border-border p-4 last:border-b-0">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-3">
-                    <code className="rounded-none border-2 border-border bg-surface px-2 py-1 font-display text-[10px] text-secondary">
-                      {o.id}
-                    </code>
+                    <code className="rounded-lg bg-surface px-2 py-1 text-sm font-semibold">{o.id}</code>
                     <StatusBadge status={o.status} />
                     <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                      <Coins className="h-4 w-4 text-accent" aria-hidden /> {o.assetLabel}
+                      <Coins className="h-4 w-4 text-primary" /> {o.assetLabel}
                     </span>
-                    <span className="font-display text-[11px] text-accent">{formatPrice(o.total)}</span>
+                    <span className="font-display text-success">{formatPrice(o.total)}</span>
                     <span className="text-xs text-muted-foreground">
                       {new Date(o.createdAt).toLocaleString()}
                     </span>
@@ -496,8 +435,8 @@ function Dashboard({
 
       {/* New listing form */}
       <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-        <div className="rounded-none border-2 border-border bg-card p-6">
-          <h2 className="mb-6 font-display text-sm leading-relaxed">List a new item</h2>
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <h2 className="mb-4 font-display text-lg">List a new item</h2>
           <div className="grid gap-5">
             <Field label="Item title" htmlFor="title" error={errors.title}>
               <Input
@@ -571,8 +510,8 @@ function Dashboard({
           </div>
         </div>
 
-        <div className="rounded-none border-2 border-border bg-card p-6">
-          <h2 className="mb-6 font-display text-sm leading-relaxed">Cover image (optional)</h2>
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <h2 className="mb-4 font-display text-lg">Cover image (optional)</h2>
           {imagePreview ? (
             <div className="flex items-center gap-4">
               <Image
@@ -581,11 +520,11 @@ function Dashboard({
                 width={112}
                 height={112}
                 unoptimized
-                className="h-28 w-28 rounded-none border-2 border-border object-cover"
+                className="h-28 w-28 rounded-xl border border-border object-cover"
               />
               <div>
                 <p className="text-sm text-muted-foreground">
-                  Cover ready. Buyers see this image on your item card.
+                  Cover uploaded. Buyers see this image on your item card.
                 </p>
                 <Button
                   type="button"
@@ -601,44 +540,27 @@ function Dashboard({
           ) : (
             <label
               htmlFor="cover"
-              aria-busy={compressing}
-              className={cn(
-                "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-none border-2 border-dashed border-border bg-surface px-6 py-10 text-center transition-colors hover:border-primary",
-                compressing && "pointer-events-none opacity-70",
-              )}
+              className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-surface px-6 py-10 text-center transition-colors hover:border-primary/60"
             >
-              <span className="flex h-12 w-12 items-center justify-center rounded-none border-2 border-primary bg-background text-primary">
-                {compressing ? (
-                  <Loader2 className="h-6 w-6 animate-spin" aria-hidden />
-                ) : (
-                  <Upload className="h-6 w-6" aria-hidden />
-                )}
+              <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary">
+                <Upload className="h-6 w-6" />
               </span>
-              <span className="font-display text-[10px] uppercase leading-relaxed">
-                {compressing ? "Compressing…" : "Click to upload a cover"}
-              </span>
+              <span className="font-medium">Click to upload a cover image</span>
               <span className="text-xs text-muted-foreground">
-                Any size photo — compressed automatically. Without one, a cover is
-                generated from the title.
+                PNG or JPG, up to 8 MB. Without one, a cover is generated from the title.
               </span>
               <input
                 id="cover"
                 type="file"
                 accept="image/*"
                 onChange={onFile}
-                disabled={compressing}
                 className="sr-only"
               />
             </label>
           )}
         </div>
 
-        <Button
-          type="submit"
-          size="lg"
-          disabled={submitting || compressing}
-          className="w-full justify-center sm:w-auto"
-        >
+        <Button type="submit" size="lg" disabled={submitting} className="w-full justify-center sm:w-auto">
           {submitting ? (
             <><Loader2 className="h-5 w-5 animate-spin" /> Publishing…</>
           ) : (
@@ -649,25 +571,22 @@ function Dashboard({
 
       {/* Listings */}
       <section className="mt-16">
-        <h2 className="mb-4 font-display text-base leading-relaxed sm:text-lg">
-          Your listings ({list.length})
-        </h2>
+        <h2 className="mb-4 font-display text-2xl">Your listings ({list.length})</h2>
         {list.length === 0 ? (
-          <p className="rounded-none border-2 border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+          <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             No items published yet. Upload your first product above.
           </p>
         ) : (
-          <div className="rounded-none border-2 border-border bg-card">
+          <div className="overflow-hidden rounded-2xl border border-border">
             {list.map((p) => (
               <div
                 key={p.id}
-                className="flex items-center justify-between gap-4 border-b-2 border-border p-4 last:border-b-0"
+                className="flex items-center justify-between gap-4 border-b border-border p-4 last:border-b-0"
               >
                 <div className="min-w-0">
                   <p className="truncate font-medium">{p.title}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {p.game} · {p.rarity ?? "—"} ·{" "}
-                    <span className="font-display text-[9px] text-accent">{formatPrice(p.price)}</span> ·{" "}
+                  <p className="text-xs text-muted-foreground">
+                    {p.game} · {p.rarity ?? "—"} · {formatPrice(p.price)} ·{" "}
                     <span className={cn(p.stock === 0 && "font-semibold text-destructive")}>
                       {p.stock} in stock
                     </span>
@@ -699,22 +618,17 @@ function StatusBadge({ status }: { status: OrderStatus }) {
   const map: Record<OrderStatus, { label: string; cls: string }> = {
     "awaiting-payment": {
       label: "Awaiting payment",
-      cls: "border-secondary bg-secondary/10 text-secondary",
+      cls: "bg-secondary/15 text-secondary border-secondary/30",
     },
-    fulfilled: { label: "Fulfilled", cls: "border-success bg-success/10 text-success" },
+    fulfilled: { label: "Fulfilled", cls: "bg-success/15 text-success border-success/30" },
     cancelled: {
       label: "Cancelled",
-      cls: "border-destructive bg-destructive/10 text-destructive",
+      cls: "bg-destructive/15 text-destructive border-destructive/30",
     },
   };
   const { label, cls } = map[status];
   return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-none border-2 px-2 py-1 font-display text-[9px] uppercase",
-        cls,
-      )}
-    >
+    <span className={cn("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold", cls)}>
       {label}
     </span>
   );

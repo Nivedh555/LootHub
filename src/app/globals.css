@@ -1,32 +1,32 @@
-@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Orbitron:wght@500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --color-background: #1a0033;
-  --color-surface: #240046;
-  --color-surface-2: #2d0a54;
-  --color-card: #240046;
-  --color-foreground: #f8f5ff;
-  --color-muted: #2d0a54;
-  --color-muted-foreground: #c0a8e8;
-  --color-border: #7b2cbf;
-  --color-input: #240046;
-  --color-primary: #ff00ff;
-  --color-primary-foreground: #1a0033;
-  --color-secondary: #00ffff;
-  --color-secondary-foreground: #1a0033;
-  --color-accent: #ffd700;
-  --color-accent-foreground: #1a0033;
-  --color-success: #00ff88;
-  --color-success-foreground: #0a2010;
-  --color-destructive: #ff3355;
+  --color-background: #0b0614;
+  --color-surface: #140b22;
+  --color-surface-2: #1b1130;
+  --color-card: #1b1130;
+  --color-foreground: #f5f0ff;
+  --color-muted: #241838;
+  --color-muted-foreground: #b9a9d6;
+  --color-border: #2e2245;
+  --color-input: #2a2040;
+  --color-primary: #7c3aed;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #a78bfa;
+  --color-secondary-foreground: #1b1130;
+  --color-accent: #8b5cf6;
+  --color-accent-foreground: #ffffff;
+  --color-success: #22c55e;
+  --color-success-foreground: #06130a;
+  --color-destructive: #dc2626;
   --color-destructive-foreground: #ffffff;
-  --color-ring: #00ffff;
+  --color-ring: #7c3aed;
 
   --font-sans: "Chakra Petch", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Press Start 2P", ui-monospace, monospace;
+  --font-display: "Orbitron", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
@@ -36,21 +36,24 @@
 
   html {
     color-scheme: dark;
-    scrollbar-color: var(--color-border) transparent;
+    scrollbar-color: var(--color-primary) transparent;
   }
 
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    background-image:
+      radial-gradient(60rem 60rem at 80% -10%, rgba(124, 58, 237, 0.18), transparent 60%),
+      radial-gradient(50rem 50rem at 0% 0%, rgba(139, 92, 246, 0.1), transparent 55%);
+    background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4, h5 {
     font-family: var(--font-display);
-    font-weight: 400; /* Press Start 2P only ships 400 */
-    line-height: 1.6;
-    letter-spacing: 0.01em;
+    font-weight: 700;
+    letter-spacing: 0.02em;
   }
 
   :focus-visible {
@@ -60,77 +63,112 @@
 
   ::selection {
     background: var(--color-primary);
-    color: var(--color-background);
+    color: #fff;
   }
 
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
     background: var(--color-border);
-    border-radius: 0;
+    border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover { background: var(--color-primary); }
 }
 
 @layer utilities {
-  /* Pixel-grid backdrop (cyan) */
   .bg-grid {
     background-image:
-      linear-gradient(to right, rgba(0, 255, 255, 0.06) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0, 255, 255, 0.06) 1px, transparent 1px);
-    background-size: 32px 32px;
+      linear-gradient(to right, rgba(167, 139, 250, 0.08) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(167, 139, 250, 0.08) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+  .text-glow {
+    text-shadow: 0 0 24px rgba(124, 58, 237, 0.55);
   }
 
-  /* ── Hard pixel shadows: the core visual signature ────────────────── */
-  .pixel-shadow      { box-shadow: 3px 3px 0 0 #ff00ff; }
-  .pixel-shadow-cyan { box-shadow: 3px 3px 0 0 #00ffff; }
-  .pixel-shadow-gold { box-shadow: 3px 3px 0 0 #ffd700; }
-  .pixel-shadow-dark { box-shadow: 4px 4px 0 0 rgba(0, 0, 0, 0.6); }
-
-  /* Headline text shadow (magenta step) */
-  .text-pixel { text-shadow: 3px 3px 0 #ff00ff; }
-  .text-pixel-cyan { text-shadow: 2px 2px 0 #00ffff; }
-
-  /* Static CSS starfield — site backdrop + hero fallback (cheap, no JS) */
-  .pixel-stars {
-    background-image:
-      radial-gradient(1px 1px at 22px 34px, #ffffffcc 50%, transparent 50%),
-      radial-gradient(1px 1px at 120px 90px, #ffffff88 50%, transparent 50%),
-      radial-gradient(2px 2px at 190px 40px, #00ffff99 50%, transparent 50%),
-      radial-gradient(1px 1px at 80px 160px, #ffffffaa 50%, transparent 50%),
-      radial-gradient(1px 1px at 210px 140px, #ffd70099 50%, transparent 50%),
-      radial-gradient(2px 2px at 40px 210px, #ffffff77 50%, transparent 50%),
-      radial-gradient(1px 1px at 160px 200px, #ff00ff88 50%, transparent 50%),
-      radial-gradient(1px 1px at 230px 220px, #ffffff99 50%, transparent 50%);
-    background-size: 240px 240px;
-  }
-
-  /* Subtle CRT scanlines overlay */
-  .scanlines {
-    background-image: repeating-linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.35) 0px,
-      rgba(0, 0, 0, 0.35) 1px,
-      transparent 1px,
-      transparent 3px
-    );
-    opacity: 0.12;
+  /* Aurora: two drifting blurred orbs behind the hero content */
+  .aurora {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
     pointer-events: none;
   }
+  .aurora::before,
+  .aurora::after {
+    content: "";
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(64px);
+    will-change: transform;
+  }
+  .aurora::before {
+    width: 34rem;
+    height: 34rem;
+    left: -12%;
+    top: -40%;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.45), transparent 60%);
+    animation: aurora-1 18s ease-in-out infinite alternate;
+  }
+  .aurora::after {
+    width: 30rem;
+    height: 30rem;
+    right: -12%;
+    top: -10%;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent 60%);
+    animation: aurora-2 23s ease-in-out infinite alternate;
+  }
 
-  /* Blinking "INSERT COIN" cursor */
-  .blink { animation: pixel-blink 1.2s steps(1) infinite; }
+  /* Beams: slow-rotating conic light spokes, masked to fade at center + edges */
+  .beams {
+    position: absolute;
+    inset: -40%;
+    pointer-events: none;
+    background: conic-gradient(
+      from 0deg at 50% 50%,
+      transparent 0deg,
+      rgba(124, 58, 237, 0.16) 10deg,
+      transparent 20deg,
+      transparent 100deg,
+      rgba(167, 139, 250, 0.12) 110deg,
+      transparent 120deg,
+      transparent 190deg,
+      rgba(139, 92, 246, 0.14) 200deg,
+      transparent 210deg,
+      transparent 280deg,
+      rgba(124, 58, 237, 0.12) 290deg,
+      transparent 300deg,
+      transparent 360deg
+    );
+    animation: beams-spin 48s linear infinite;
+    mask: radial-gradient(closest-side, transparent 0%, #000 35%, #000 75%, transparent 100%);
+    -webkit-mask: radial-gradient(closest-side, transparent 0%, #000 35%, #000 75%, transparent 100%);
+  }
 
-  /* Solid pixel header */
+
+  /* ── Ambient backdrop: grid drift, orbs, beams, noise ─────────────── */
+  .ambient-orbs {
+    background:
+      radial-gradient(38rem 30rem at 15% 12%, rgba(124, 58, 237, 0.16), transparent 60%),
+      radial-gradient(34rem 28rem at 88% 30%, rgba(139, 92, 246, 0.12), transparent 60%);
+    animation: ambient-orbs-drift 26s ease-in-out infinite alternate;
+  }
+  .ambient-noise {
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 140px 140px;
+  }
+
+  /* Transparent → glass header */
   .header-glass {
-    background: color-mix(in srgb, var(--color-background) 95%, transparent);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-bottom: 2px solid var(--color-border);
+    background: color-mix(in srgb, var(--color-background) 78%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+    box-shadow: 0 8px 32px -18px rgba(124, 58, 237, 0.45);
   }
   .header-clear {
     background: transparent;
-    border-bottom: 2px solid transparent;
+    border-bottom: 1px solid transparent;
   }
 
   /* Reviews marquee */
@@ -151,13 +189,24 @@
   }
 }
 
+@keyframes aurora-1 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(4rem, 3rem) scale(1.08); }
+}
+@keyframes aurora-2 {
+  from { transform: translate(0, 0) scale(1); }
+  to { transform: translate(-3rem, 2.5rem) scale(1.1); }
+}
+@keyframes beams-spin {
+  to { transform: rotate(360deg); }
+}
 @keyframes marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
-@keyframes pixel-blink {
-  0%, 49% { opacity: 1; }
-  50%, 100% { opacity: 0; }
+@keyframes ambient-orbs-drift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(-2.5rem, 2rem); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -167,8 +216,35 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  .aurora::before,
+  .aurora::after,
+  .beams,
   .marquee-track,
-  .blink {
+  .ambient-orbs {
     animation: none !important;
+  }
+}
+
+@theme inline {
+  --animate-shimmer-slide: shimmer-slide var(--speed) ease-in-out infinite alternate;
+  --animate-spin-around: spin-around calc(var(--speed) * 2) infinite linear;
+  @keyframes shimmer-slide {
+  to {
+    transform: translate(calc(100cqw - 100%), 0);
+    }
+  }
+  @keyframes spin-around {
+  0% {
+    transform: translateZ(0) rotate(0);
+    }
+  15%, 35% {
+    transform: translateZ(0) rotate(90deg);
+    }
+  65%, 85% {
+    transform: translateZ(0) rotate(270deg);
+    }
+  100% {
+    transform: translateZ(0) rotate(360deg);
+    }
   }
 }

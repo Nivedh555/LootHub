@@ -6,7 +6,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
     <select
       ref={ref}
       className={cn(
-        "flex h-11 w-full appearance-none rounded-none border-2 border-border bg-input px-3.5 text-sm text-foreground transition-[border-color,box-shadow] focus:border-secondary focus:outline-none focus:shadow-[3px_3px_0_0_#00ffff] disabled:opacity-50",
+        "flex h-11 w-full appearance-none rounded-xl border border-border bg-input px-3.5 text-sm text-foreground transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/40 disabled:opacity-50",
         className,
       )}
       style={{ colorScheme: "dark" }}

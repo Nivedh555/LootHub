@@ -1,48 +1,72 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Hard-edged arcade card. Kept the SpotlightCard name/props so existing
- * consumers work unchanged: `borderColor` becomes the hover border color,
- * `spotlightColor` is accepted but unused (soft glows don't fit pixel style).
- * On hover the card lifts off a hard drop shadow.
+ * Card surface with a cursor-tracking radial glow + glowing border sweep.
+ * Blend of 21st.dev @preetsuthar17/spotlight-card (inner glow) and
+ * @easemize/spotlight-card (border spotlight), adapted to our tokens.
  */
 export function SpotlightCard({
   as: Tag = "div",
   children,
   className,
-  // Pulled out so it never reaches the DOM element.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  spotlightColor: _spotlightColor,
-  borderColor,
-  style,
+  spotlightColor = "rgba(124, 58, 237, 0.28)",
+  borderColor = "rgba(167, 139, 250, 0.85)",
   ...props
 }: React.ComponentProps<"div"> & {
   as?: "div" | "article";
   spotlightColor?: string;
   borderColor?: string;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ x: 0, y: 0 });
   const [lit, setLit] = useState(false);
+
+  function track(e: React.MouseEvent<HTMLDivElement>) {
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    setPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  }
 
   return (
     <Tag
+      ref={ref}
+      onMouseMove={track}
       onMouseEnter={() => setLit(true)}
       onMouseLeave={() => setLit(false)}
       className={cn(
-        "group relative overflow-hidden rounded-none border-2 border-border bg-card",
-        "transition-[border-color,box-shadow,transform] duration-100",
-        lit && "-translate-x-[2px] -translate-y-[2px] pixel-shadow-dark",
-        lit && !borderColor && "border-primary",
+        "group relative overflow-hidden rounded-2xl border border-border bg-card",
+        "transition-shadow duration-300",
+        lit && "shadow-[0_18px_50px_-24px_rgba(124,58,237,0.55)]",
         className,
       )}
-      style={{
-        ...(lit && borderColor ? { borderColor } : undefined),
-        ...style,
-      }}
       {...props}
     >
+      {/* Border spotlight: a bright ring segment that follows the cursor. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-2xl transition-opacity duration-500"
+        style={{
+          opacity: lit ? 1 : 0,
+          background: `radial-gradient(14rem circle at ${pos.x}px ${pos.y}px, ${borderColor}, transparent 55%)`,
+          padding: 1,
+          mask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+          WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+          maskComposite: "exclude",
+          WebkitMaskComposite: "xor",
+        }}
+      />
+      {/* Inner glow following the cursor. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 transition-opacity duration-500"
+        style={{
+          opacity: lit ? 1 : 0,
+          background: `radial-gradient(24rem circle at ${pos.x}px ${pos.y}px, ${spotlightColor}, transparent 42%)`,
+        }}
+      />
       {children}
     </Tag>
   );

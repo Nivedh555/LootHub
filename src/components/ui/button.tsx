@@ -6,36 +6,33 @@ type Size = "sm" | "md" | "lg" | "icon";
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "border-primary bg-primary text-primary-foreground pixel-shadow-dark hover:bg-[#ff33ff]",
-  // accent is an alias of primary — magenta is the action color
+    "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_rgba(124,58,237,0.55),0_8px_24px_-12px_rgba(124,58,237,0.8)] hover:shadow-[0_0_0_1px_rgba(167,139,250,0.7),0_0_28px_-4px_rgba(124,58,237,0.7)] hover:-translate-y-0.5",
+  // accent is an alias of primary now — purple is the only action color
   accent:
-    "border-primary bg-primary text-primary-foreground pixel-shadow-dark hover:bg-[#ff33ff]",
+    "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_rgba(124,58,237,0.55),0_8px_24px_-12px_rgba(124,58,237,0.8)] hover:shadow-[0_0_0_1px_rgba(167,139,250,0.7),0_0_28px_-4px_rgba(124,58,237,0.7)] hover:-translate-y-0.5",
   secondary:
-    "border-secondary bg-transparent text-secondary pixel-shadow-cyan hover:bg-secondary/10",
+    "border border-white/10 bg-white/5 text-foreground backdrop-blur-md hover:bg-white/10 hover:border-primary/40 hover:-translate-y-0.5",
   glass:
-    "border-secondary bg-transparent text-secondary pixel-shadow-cyan hover:bg-secondary/10",
+    "border border-white/10 bg-white/5 text-foreground backdrop-blur-md hover:bg-white/10 hover:border-primary/40 hover:-translate-y-0.5",
   outline:
-    "border-border bg-surface text-foreground pixel-shadow-dark hover:border-primary",
-  // Transparent border keeps layout identical to bordered variants
-  ghost: "border-transparent text-foreground shadow-none hover:bg-surface-2 active:translate-x-0 active:translate-y-0",
+    "border border-border bg-surface/60 text-foreground backdrop-blur-sm hover:bg-surface-2 hover:border-primary/50",
+  ghost: "text-foreground hover:bg-surface-2",
   success:
-    "border-success bg-success text-success-foreground pixel-shadow-dark hover:bg-[#33ffa0]",
-  destructive:
-    "border-destructive bg-destructive text-destructive-foreground pixel-shadow-dark hover:bg-[#ff5577]",
+    "bg-success text-success-foreground hover:bg-success/90 shadow-[0_0_0_1px_rgba(34,197,94,0.5)] hover:shadow-[0_0_24px_-6px_rgba(34,197,94,0.6)]",
+  destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
 };
 
 const sizeClasses: Record<Size, string> = {
-  sm: "h-10 px-3 text-[10px] gap-1.5",
-  md: "h-12 px-5 text-[11px] gap-2",
-  lg: "h-13 px-7 text-xs gap-2.5",
-  icon: "h-12 w-12",
+  sm: "h-9 px-3 text-sm gap-1.5",
+  md: "h-11 px-5 text-sm gap-2",
+  lg: "h-12 px-7 text-base gap-2.5",
+  icon: "h-11 w-11",
 };
 
 export function buttonVariants(opts: { variant?: Variant; size?: Size } = {}) {
   const { variant = "primary", size = "md" } = opts;
   return cn(
-    // Hard-edged arcade button: presses down into its own shadow on click.
-    "inline-flex select-none items-center justify-center rounded-none border-2 font-display uppercase tracking-wide cursor-pointer transition-[transform,box-shadow,background-color,border-color] duration-100 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none",
+    "inline-flex select-none items-center justify-center rounded-xl font-semibold cursor-pointer transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 active:translate-y-px active:scale-[0.98]",
     variantClasses[variant],
     sizeClasses[size],
   );

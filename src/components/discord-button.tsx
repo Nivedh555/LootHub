@@ -35,11 +35,11 @@ export function DiscordButton({
       target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        "inline-flex items-center justify-center gap-2.5 rounded-none border-2 border-[#5865F2] bg-[#5865F2] font-display uppercase tracking-wide text-white",
-        "pixel-shadow-dark transition-[transform,box-shadow,background-color] duration-100",
-        "hover:bg-[#4752c4] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none",
+        "inline-flex items-center justify-center gap-2.5 rounded-xl bg-[#5865F2] font-semibold text-white",
+        "shadow-[0_10px_30px_-10px_rgba(88,101,242,0.7)] transition-all duration-200",
+        "hover:-translate-y-0.5 hover:bg-[#4752c4] hover:shadow-[0_14px_36px_-10px_rgba(88,101,242,0.85)]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5865F2] focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        size === "lg" ? "px-7 py-4 text-xs" : "px-5 py-3 text-[10px]",
+        size === "lg" ? "px-7 py-3.5 text-base" : "px-5 py-2.5 text-sm",
         className,
       )}
     >

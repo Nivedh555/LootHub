@@ -17,7 +17,8 @@ import { HeroSearch } from "@/components/home/hero-search";
 import { FaqAccordion, type FaqItem } from "@/components/home/faq-accordion";
 import { FeaturedCarousel } from "@/components/home/featured-carousel";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
-import { PixelHeroLoader } from "@/components/ui/pixel-hero-loader";
+import { AmbientBackground } from "@/components/ui/ambient-background";
+import { LootCrateHero } from "@/components/ui/loot-crate-hero";
 import { BlurFade } from "@/components/ui/blur-fade";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { buttonVariants } from "@/components/ui/button";
@@ -58,42 +59,47 @@ export default async function HomePage() {
   return (
     <>
       <AutoRefresh />
-      {/* Hero — pixel rocket canvas backdrop with overlaid content */}
-      <section className="relative -mt-[4.5rem] flex min-h-[85vh] items-center overflow-hidden border-b-2 border-border pt-[4.5rem]">
-        <PixelHeroLoader />
-        <div className="relative z-10 mx-auto w-full max-w-3xl px-4 py-14 text-center sm:px-6">
-          <BlurFade inView>
-            <Badge>
-              <Coins className="h-3.5 w-3.5" aria-hidden /> Crypto checkout · Discord delivery
-            </Badge>
-            <h1 className="mt-6 font-display text-2xl leading-[1.5] text-pixel sm:text-4xl sm:leading-[1.4]">
-              In-game items.
-              <br />
-              <span className="text-primary">Pay with crypto.</span>
-            </h1>
-            <p className="mx-auto mt-6 max-w-xl text-sm text-muted-foreground sm:text-base">
-              Adopt Me!, Murder Mystery 2, Grow a Garden, Steal a Brainrot &amp; Donut
-              SMP. Pay USDT or LTC, then open a Discord ticket to receive your item in-game.
-            </p>
-          </BlurFade>
-          <BlurFade inView delay={0.1}>
-            <div className="mx-auto mt-8 hidden max-w-xl sm:block">
-              <HeroSearch />
-            </div>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
-              <a href="#shop" className={buttonVariants({ variant: "primary", size: "lg" })}>
-                Shop items <ArrowRight className="h-4 w-4" aria-hidden />
-              </a>
-              <DiscordButton size="lg" />
-            </div>
-          </BlurFade>
-          <BlurFade inView delay={0.18}>
-            <div className="mx-auto mt-10 grid max-w-md grid-cols-3 rounded-none border-2 border-border bg-background/80 divide-x-2 divide-border">
-              <Stat value={all.length} label="Items listed" />
-              <Stat value={totalStock} label="In stock" />
-              <Stat value={games.length} label="Games" />
-            </div>
-          </BlurFade>
+      {/* Hero — dense, two-column, crate animation */}
+      <section className="relative -mt-[4.5rem] overflow-hidden border-b border-border pt-[4.5rem]">
+        <AmbientBackground />
+        <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-6 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[1fr_360px] lg:gap-4">
+          <div>
+            <BlurFade inView>
+              <Badge className="px-3 py-1 text-xs">
+                <Coins className="h-3.5 w-3.5" /> Crypto checkout · Discord delivery
+              </Badge>
+              <h1 className="mt-3 max-w-2xl font-display text-3xl leading-[1.12] text-foreground sm:text-[2.75rem]">
+                In-game items.{" "}
+                <span className="text-glow text-primary">Pay with crypto.</span>
+              </h1>
+              <p className="mt-3 max-w-xl text-sm text-muted-foreground sm:text-base">
+                Adopt Me!, Murder Mystery 2, Grow a Garden, Steal a Brainrot &amp; Donut
+                SMP. Pay USDT or LTC, then open a Discord ticket to receive your item in-game.
+              </p>
+            </BlurFade>
+            <BlurFade inView delay={0.1}>
+              <div className="mt-5 hidden max-w-xl sm:block">
+                <HeroSearch />
+              </div>
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <a href="#shop" className={buttonVariants({ variant: "primary", size: "lg" })}>
+                  Shop items <ArrowRight className="h-4 w-4" />
+                </a>
+                <DiscordButton size="lg" />
+              </div>
+            </BlurFade>
+            {/* stat strip */}
+            <BlurFade inView delay={0.18}>
+              <div className="mt-6 grid max-w-md grid-cols-3 divide-x divide-border rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md">
+                <Stat value={all.length} label="Items listed" />
+                <Stat value={totalStock} label="In stock" />
+                <Stat value={games.length} label="Games" />
+              </div>
+            </BlurFade>
+          </div>
+          <div className="hidden justify-center lg:flex">
+            <LootCrateHero size={330} />
+          </div>
         </div>
       </section>
 
@@ -114,22 +120,19 @@ export default async function HomePage() {
         <BlurFade inView>
           <div className="mb-2 flex items-end justify-between gap-4">
             <SectionHeading eyebrow="Shop" title="All items" />
-            <Link
-              href="/browse"
-              className="inline-flex items-center gap-1 font-display text-[10px] uppercase text-secondary hover:underline"
-            >
-              Full browse <ArrowRight className="h-4 w-4" aria-hidden />
+            <Link href="/browse" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+              Full browse <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </BlurFade>
         {all.length > 0 ? (
           <ShopGrid products={all} />
         ) : (
-          <div className="mt-6 flex flex-col items-center gap-4 rounded-none border-2 border-dashed border-border bg-card px-6 py-14 text-center">
-            <PackageOpen className="h-10 w-10 text-secondary" aria-hidden />
+          <div className="mt-6 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border bg-card/50 px-6 py-14 text-center">
+            <PackageOpen className="h-10 w-10 text-muted-foreground" aria-hidden />
             <div>
-              <h3 className="font-display text-sm leading-relaxed">Stock is being updated</h3>
-              <p className="mt-3 max-w-md text-sm text-muted-foreground">
+              <h3 className="font-display text-lg">Stock is being updated</h3>
+              <p className="mt-1 max-w-md text-sm text-muted-foreground">
                 New items are on the way. Join the Discord to get notified the moment fresh stock drops.
               </p>
             </div>
@@ -155,16 +158,16 @@ export default async function HomePage() {
                     className="flex h-full flex-col p-5 transition-transform duration-200 group-hover:-translate-y-1"
                   >
                     <span
-                      className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-none border-2"
-                      style={{ borderColor: meta.color }}
+                      className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl"
+                      style={{ boxShadow: `0 0 24px -6px ${meta.glow}` }}
                     >
-                      <GameIcon game={g} className="h-12 w-12 rounded-none" />
+                      <GameIcon game={g} className="h-12 w-12 rounded-xl" />
                     </span>
-                    <h3 className="mt-4 font-display text-[11px] leading-relaxed sm:text-xs">{g}</h3>
-                    <p className="mt-2 text-xs text-muted-foreground sm:text-sm">{meta.blurb}</p>
+                    <h3 className="mt-4 font-display text-sm sm:text-base">{g}</h3>
+                    <p className="mt-1 text-xs text-muted-foreground sm:text-sm">{meta.blurb}</p>
                     <span
-                      className="mt-4 inline-flex w-fit items-center rounded-none border-2 px-2 py-1 font-display text-[9px] uppercase"
-                      style={{ borderColor: meta.color, color: meta.color }}
+                      className="mt-3 inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide"
+                      style={{ backgroundColor: meta.glow, color: meta.color }}
                     >
                       {meta.platform}
                     </span>
@@ -186,15 +189,13 @@ export default async function HomePage() {
             <BlurFade key={s.title} inView delay={i * 0.06} className="h-full">
               <SpotlightCard className="flex h-full flex-col p-6">
                 <div className="flex items-center justify-between">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-none border-2 border-secondary bg-background text-secondary">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
                     <s.icon className="h-5 w-5" aria-hidden />
                   </span>
-                  <span className="font-display text-lg text-primary/40">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
+                  <span className="font-display text-2xl font-bold text-primary/30">{String(i + 1).padStart(2, "0")}</span>
                 </div>
-                <h3 className="mt-5 font-display text-[11px] leading-relaxed">{s.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{s.body}</p>
+                <h3 className="mt-4 font-display text-base">{s.title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{s.body}</p>
               </SpotlightCard>
             </BlurFade>
           ))}
@@ -210,11 +211,11 @@ export default async function HomePage() {
           {trustItems.map((t) => (
             <BlurFade key={t.title} inView className="h-full">
               <SpotlightCard className="flex h-full flex-col p-6">
-                <span className="flex h-11 w-11 items-center justify-center rounded-none border-2 border-primary bg-background text-primary">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary">
                   <t.icon className="h-5 w-5" aria-hidden />
                 </span>
-                <h3 className="mt-5 font-display text-[11px] leading-relaxed">{t.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{t.body}</p>
+                <h3 className="mt-4 font-display text-base">{t.title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{t.body}</p>
               </SpotlightCard>
             </BlurFade>
           ))}
@@ -234,14 +235,14 @@ export default async function HomePage() {
       {/* Discord CTA */}
       <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
         <BlurFade inView>
-          <div className="relative overflow-hidden rounded-none border-2 border-[#5865F2] bg-surface p-8 pixel-shadow-dark sm:p-10">
-            <div className="pointer-events-none absolute inset-0 pixel-stars opacity-40" aria-hidden />
+          <div className="relative overflow-hidden rounded-3xl border border-[#5865F2]/40 bg-gradient-to-br from-[#5865F2]/25 via-surface to-primary/15 p-8 sm:p-10">
+            <AmbientBackground className="opacity-60" />
             <div className="relative flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="max-w-xl font-display text-base leading-relaxed sm:text-lg">
+                <h2 className="max-w-xl font-display text-2xl leading-tight sm:text-3xl">
                   Deliveries happen on Discord.
                 </h2>
-                <p className="mt-4 max-w-lg text-muted-foreground">
+                <p className="mt-2 max-w-lg text-muted-foreground">
                   After paying with crypto, you open a ticket in {discord.serverName},
                   share your order ID, and receive your item via in-game trade.
                 </p>
@@ -257,11 +258,11 @@ export default async function HomePage() {
 
 function Stat({ value, label }: { value: number; label: string }) {
   return (
-    <div className="px-3 py-4 text-center">
-      <p className="font-display text-sm text-accent">
-        <NumberTicker value={value} className="text-accent" />
+    <div className="px-4 py-3 text-center">
+      <p className="font-display text-xl font-bold text-foreground">
+        <NumberTicker value={value} className="text-foreground" />
       </p>
-      <p className="mt-2 text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
     </div>
   );
 }
@@ -269,8 +270,8 @@ function Stat({ value, label }: { value: number; label: string }) {
 function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div>
-      <p className="font-display text-[9px] uppercase tracking-[0.2em] text-secondary">{eyebrow}</p>
-      <h2 className="mt-3 font-display text-base leading-relaxed sm:text-xl">{title}</h2>
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">{eyebrow}</p>
+      <h2 className="mt-1 font-display text-2xl sm:text-3xl">{title}</h2>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { site, discord } from "@/config/site";
 
 export function Footer() {
   return (
-    <footer className="mt-20 border-t-2 border-border bg-surface/60">
+    <footer className="mt-20 border-t border-border bg-surface/60">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
@@ -14,14 +14,14 @@ export function Footer() {
               alt="LootHub logo"
               width={40}
               height={40}
-              className="h-10 w-10 rounded-none border-2 border-primary object-contain"
+              className="h-10 w-10 rounded-lg object-contain ring-1 ring-primary/40"
             />
-            <span className="font-display text-xs">LootHub</span>
+            <span className="font-display text-lg">LootHub</span>
           </div>
           <p className="max-w-xs text-sm text-muted-foreground">{site.tagline}</p>
           <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
             <span className="inline-flex items-center gap-1.5 text-xs">
-              <MessagesSquare className="h-4 w-4 text-secondary" /> Discord delivery
+              <MessagesSquare className="h-4 w-4 text-[#8a93f5]" /> Discord delivery
             </span>
             <span className="inline-flex items-center gap-1.5 text-xs">
               <Coins className="h-4 w-4 text-primary" /> Crypto checkout
@@ -59,7 +59,7 @@ export function Footer() {
         />
       </div>
 
-      <div className="border-t-2 border-border">
+      <div className="border-t border-border">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 py-6 text-xs text-muted-foreground sm:flex-row sm:px-6">
           <p>
             &copy; {new Date().getFullYear()} LootHub &ndash; All rights reserved.
@@ -91,14 +91,14 @@ function FooterCol({
 }) {
   return (
     <div className="space-y-3">
-      <h2 className="font-display text-[10px] uppercase tracking-wide text-foreground">{title}</h2>
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground">{title}</h2>
       <ul className="space-y-2 text-sm">
         {links.map((l) => (
           <li key={l.label}>
             <Link
               href={l.href}
               {...(l.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-              className="text-muted-foreground transition-colors hover:text-secondary"
+              className="text-muted-foreground transition-colors hover:text-primary"
             >
               {l.label}
             </Link>
