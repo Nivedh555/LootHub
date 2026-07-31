@@ -27,7 +27,8 @@ import { Badge } from "@/components/ui/badge";
 import { SectionHeading } from "@/components/section-heading";
 import { discord } from "@/config/site";
 import { games, gameMeta } from "@/config/games";
-import { getAllProducts } from "@/lib/server-store";
+import { getAllProducts, getAllAccounts } from "@/lib/server-store";
+import { GameAccountsGrid } from "@/components/game-accounts-grid";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +57,7 @@ const faqItems: FaqItem[] = [
 export default async function HomePage() {
   const all = await getAllProducts();
   const totalStock = all.reduce((s, p) => s + p.stock, 0);
+  const accounts = await getAllAccounts();
 
   return (
     <>
@@ -205,6 +207,31 @@ export default async function HomePage() {
             );
           })}
         </RevealGroup>
+      </section>
+
+      {/* Game Accounts */}
+      <section id="accounts" className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <Reveal inView>
+          <div className="mb-2 flex items-end justify-between gap-4">
+            <SectionHeading eyebrow="Accounts" title="Game accounts" />
+            <Link href="/accounts" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
+              View all <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </Reveal>
+        {accounts.length > 0 ? (
+          <GameAccountsGrid accounts={accounts} />
+        ) : (
+          <div className="mt-6 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border bg-card/50 px-6 py-14 text-center">
+            <PackageOpen className="h-10 w-10 text-muted-foreground" aria-hidden />
+            <div>
+              <h3 className="font-display text-lg">No accounts available</h3>
+              <p className="mt-1 max-w-md text-sm text-muted-foreground">
+                New game accounts are being added. Check back soon!
+              </p>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* How it works */}

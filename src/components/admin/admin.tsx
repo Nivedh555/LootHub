@@ -30,7 +30,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { formatPrice } from "@/lib/format";
 import { games } from "@/config/games";
 import { cn } from "@/lib/utils";
-import type { Game, Order, OrderStatus, Product } from "@/lib/types";
+import type { Game, GameAccount, Order, OrderStatus, Product } from "@/lib/types";
 
 const empty = {
   title: "",
@@ -141,6 +141,7 @@ function Dashboard({
   initialOrders: Order[];
 }) {
   const router = useRouter();
+  const [tab, setTab] = useState<"products" | "accounts" | "orders">("products");
   const [list, setList] = useState<Product[]>(initialProducts);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [form, setForm] = useState({ ...empty });
@@ -330,6 +331,26 @@ function Dashboard({
         </Button>
       </div>
 
+      {/* Tabs */}
+      <div className="mb-8 flex gap-1 rounded-xl border border-white/10 bg-white/5 p-1">
+        {(["products", "accounts", "orders"] as const).map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => setTab(t)}
+            className={cn(
+              "relative inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors duration-200",
+              tab === t ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {tab === t && (
+              <span className="absolute inset-0 rounded-lg bg-primary shadow-[0_0_18px_-4px_rgba(124,58,237,0.8)]" />
+            )}
+            <span className="relative z-10 capitalize">{t}</span>
+          </button>
+        ))}
+      </div>
+
       {serverError && (
         <div className="mb-6 flex items-center gap-2 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
           <AlertCircle className="h-5 w-5" /> {serverError}
@@ -360,7 +381,7 @@ function Dashboard({
         </div>
       )}
 
-      {/* Orders */}
+      {tab === "orders" && (
       <section className="mb-12">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h2 className="inline-flex items-center gap-2 font-display text-2xl">
@@ -432,7 +453,10 @@ function Dashboard({
           </div>
         )}
       </section>
+      )}
 
+      {tab === "products" && (
+      <>
       {/* New listing form */}
       <form onSubmit={handleSubmit} className="space-y-6" noValidate>
         <div className="rounded-2xl border border-border bg-card p-6">
@@ -606,6 +630,117 @@ function Dashboard({
                     <Trash2 className="h-4 w-4" /> Remove
                   </Button>
                 </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+      </>
+      )}
+
+      {tab === "accounts" && <AccountsTab />}
+    </div>
+  );
+}
+
+function AccountsTab() {
+  const [accounts, setAccounts] = useState<GameAccount[]>([]);
+  const [form, setForm] = useState({ title: "", game: "", platform: "", price: "", stock: "1", description: "", tags: "" });
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/accounts")
+      .then((r) => r.json())
+      .then((data) => setAccounts(data.accounts ?? []))
+      .catch(() => setAccounts([]));
+  }, []);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const price = Number(form.price);
+    if (!form.title.trim() || Number.isNaN(price) || price < 0.01 || price > 2000) return;
+    setSubmitting(true);
+    const data = new FormData();
+    data.append("title", form.title.trim());
+    data.append("game", form.game.trim());
+    data.append("platform", form.platform.trim());
+    data.append("price", form.price);
+    data.append("stock", form.stock);
+    data.append("description", form.description.trim());
+    data.append("tags", form.tags);
+    try {
+      const res = await fetch("/api/accounts", { method: "POST", body: data });
+      const json = await res.json();
+      if (res.ok) {
+        setAccounts((prev) => [json.account, ...prev]);
+        setForm({ title: "", game: "", platform: "", price: "", stock: "1", description: "", tags: "" });
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function removeOne(id: string) {
+    if (!confirm("Delete this account listing?")) return;
+    const res = await fetch(`/api/accounts/${id}`, { method: "DELETE" });
+    if (res.ok) setAccounts((prev) => prev.filter((a) => a.id !== id));
+  }
+
+  return (
+    <div className="space-y-10">
+      <form onSubmit={submit} className="space-y-6">
+        <div className="rounded-2xl border border-border bg-card p-6">
+          <h2 className="mb-4 font-display text-lg">List a game account</h2>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label="Title" htmlFor="a-title">
+              <Input id="a-title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="e.g. Minecraft Premium Java Account" />
+            </Field>
+            <Field label="Game" htmlFor="a-game">
+              <Input id="a-game" value={form.game} onChange={(e) => setForm((f) => ({ ...f, game: e.target.value }))} placeholder="Minecraft, Roblox…" />
+            </Field>
+            <Field label="Platform" htmlFor="a-platform">
+              <Input id="a-platform" value={form.platform} onChange={(e) => setForm((f) => ({ ...f, platform: e.target.value }))} placeholder="Java, Bedrock, PC…" />
+            </Field>
+            <Field label="Price (USD)" htmlFor="a-price">
+              <Input id="a-price" type="number" min={0.01} max={2000} step={0.01} value={form.price} onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))} placeholder="9.99" />
+            </Field>
+            <Field label="Stock" htmlFor="a-stock">
+              <Input id="a-stock" type="number" min={1} value={form.stock} onChange={(e) => setForm((f) => ({ ...f, stock: e.target.value }))} placeholder="1" />
+            </Field>
+          </div>
+          <div className="mt-4 grid gap-5">
+            <Field label="Description" htmlFor="a-desc">
+              <Textarea id="a-desc" value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Account details, rank, items included…" rows={3} />
+            </Field>
+            <Field label="Tags (comma separated)" htmlFor="a-tags">
+              <Input id="a-tags" value={form.tags} onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))} placeholder="full-access, email-changeable, premium" />
+            </Field>
+          </div>
+        </div>
+        <Button type="submit" size="lg" disabled={submitting} className="w-full justify-center sm:w-auto">
+          {submitting ? <><Loader2 className="h-5 w-5 animate-spin" /> Publishing…</> : <><PackageCheck className="h-5 w-5" /> Publish account</>}
+        </Button>
+      </form>
+
+      <section>
+        <h2 className="mb-4 font-display text-2xl">Account listings ({accounts.length})</h2>
+        {accounts.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+            No accounts listed yet. Add your first game account above.
+          </p>
+        ) : (
+          <div className="overflow-hidden rounded-2xl border border-border">
+            {accounts.map((a) => (
+              <div key={a.id} className="flex items-center justify-between gap-4 border-b border-border p-4 last:border-b-0">
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{a.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {a.game} · {a.platform} · {formatPrice(a.price)} · {a.stock} available
+                  </p>
+                </div>
+                <Button variant="ghost" size="sm" className="text-destructive shrink-0" onClick={() => removeOne(a.id)}>
+                  <Trash2 className="h-4 w-4" /> Remove
+                </Button>
               </div>
             ))}
           </div>

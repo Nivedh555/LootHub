@@ -21,6 +21,19 @@ export interface Product {
   local?: boolean;
 }
 
+export interface GameAccount {
+  id: string;
+  title: string;
+  game: string;
+  platform: string;
+  price: number;
+  stock: number;
+  description: string;
+  tags: string[];
+  image?: string;
+  featured?: boolean;
+}
+
 export type OrderStatus = "awaiting-payment" | "fulfilled" | "cancelled";
 
 export interface OrderLine {

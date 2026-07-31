@@ -42,6 +42,12 @@ export async function db(): Promise<Pool> {
           content_type text NOT NULL,
           bytes        bytea NOT NULL
         )`);
+      await p.query(`
+        CREATE TABLE IF NOT EXISTS game_accounts (
+          id   text PRIMARY KEY,
+          pos  bigserial,
+          data jsonb NOT NULL
+        )`);
     })();
   }
   await ready;

@@ -3,7 +3,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { db, hasDb } from "./db";
-import type { Order, Product } from "./types";
+import type { Order, Product, GameAccount } from "./types";
 
 /**
  * Storage layer. With DATABASE_URL set (production / Vercel) everything
@@ -441,5 +441,95 @@ export async function removeOrder(id: string): Promise<void> {
       await adjustStockForOrder(target, 1);
     }
     await writeJson(ORDERS_FILE, orders.filter((o) => o.id !== id));
+  });
+}
+
+// ---------- Game Accounts ----------
+
+const ACCOUNTS_FILE = path.join(DATA_DIR, "accounts.json");
+
+export async function getAllAccounts(): Promise<GameAccount[]> {
+  if (hasDb) {
+    const pool = await db();
+    const res = await pool.query("SELECT data FROM game_accounts ORDER BY pos DESC");
+    return res.rows.map((r) => r.data as GameAccount);
+  }
+  return readJson<GameAccount>(ACCOUNTS_FILE);
+}
+
+export async function findAccountById(id: string): Promise<GameAccount | undefined> {
+  if (hasDb) {
+    const pool = await db();
+    const res = await pool.query("SELECT data FROM game_accounts WHERE id = $1", [id]);
+    return (res.rows[0]?.data as GameAccount) ?? undefined;
+  }
+  return (await readJson<GameAccount>(ACCOUNTS_FILE)).find((a) => a.id === id);
+}
+
+export async function addAccount(input: GameAccount): Promise<GameAccount> {
+  if (hasDb) {
+    const pool = await db();
+    await pool.query("INSERT INTO game_accounts (id, data) VALUES ($1, $2)", [
+      input.id,
+      JSON.stringify(input),
+    ]);
+    return input;
+  }
+  return enqueue(async () => {
+    const arr = await readJson<GameAccount>(ACCOUNTS_FILE);
+    await writeJson(ACCOUNTS_FILE, [input, ...arr]);
+    return input;
+  });
+}
+
+export async function updateAccount(
+  id: string,
+  patch: Partial<GameAccount>,
+): Promise<GameAccount | undefined> {
+  if (hasDb) {
+    const pool = await db();
+    const res = await pool.query(
+      "UPDATE game_accounts SET data = data || $2::jsonb WHERE id = $1 RETURNING data",
+      [id, JSON.stringify({ ...patch, id })],
+    );
+    return (res.rows[0]?.data as GameAccount) ?? undefined;
+  }
+  return enqueue(async () => {
+    const arr = await readJson<GameAccount>(ACCOUNTS_FILE);
+    const idx = arr.findIndex((a) => a.id === id);
+    if (idx === -1) return undefined;
+    const next = { ...arr[idx], ...patch, id };
+    arr[idx] = next;
+    await writeJson(ACCOUNTS_FILE, arr);
+    return next;
+  });
+}
+
+export async function removeAccount(id: string): Promise<boolean> {
+  if (hasDb) {
+    const pool = await db();
+    const res = await pool.query(
+      "DELETE FROM game_accounts WHERE id = $1 RETURNING data",
+      [id],
+    );
+    const image = (res.rows[0]?.data as GameAccount | undefined)?.image;
+    if (image?.startsWith("/uploads/")) {
+      await pool.query("DELETE FROM uploads WHERE filename = $1", [
+        path.basename(image),
+      ]);
+    }
+    return res.rowCount !== null && res.rowCount > 0;
+  }
+  return enqueue(async () => {
+    const arr = await readJson<GameAccount>(ACCOUNTS_FILE);
+    const target = arr.find((a) => a.id === id);
+    if (!target) return false;
+    if (target?.image?.startsWith("/uploads/")) {
+      const filename = path.basename(target.image);
+      await fs.rm(path.join(UPLOADS_DIR, filename), { force: true });
+      await fs.rm(path.join(process.cwd(), "public", "uploads", filename), { force: true });
+    }
+    await writeJson(ACCOUNTS_FILE, arr.filter((a) => a.id !== id));
+    return true;
   });
 }
