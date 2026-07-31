@@ -14,7 +14,6 @@ import { cn } from "@/lib/utils";
 import type { Game, Product } from "@/lib/types";
 
 type Sort = "featured" | "price-asc" | "price-desc" | "rating" | "az";
-const MAX = 100;
 
 function normalizeGame(g: string | null): string {
   if (!g) return "All";
@@ -40,9 +39,14 @@ export function BrowseClient({
   // Prefer URL game param over server initialGame to handle any SSR/hydration mismatch
   const initialGameResolved = normalizeGame(urlGame || initialGame || "");
 
+  const maxProductPrice = useMemo(() => {
+    if (products.length === 0) return 100;
+    return Math.max(1, Math.ceil(Math.max(...products.map((p) => p.price))));
+  }, [products]);
+
   const [q, setQ] = useState(initialQ);
   const [game, setGame] = useState<string>(initialGameResolved);
-  const [maxPrice, setMaxPrice] = useState<number>(MAX);
+  const [maxPrice, setMaxPrice] = useState<number>(maxProductPrice);
   const [sort, setSort] = useState<Sort>("featured");
 
   const filtered = useMemo(() => {
@@ -81,12 +85,12 @@ export function BrowseClient({
   }, [products, q, game, maxPrice, sort]);
 
   const activeCount =
-    (game !== "All" ? 1 : 0) + (maxPrice < MAX ? 1 : 0) + (q.trim() ? 1 : 0);
+    (game !== "All" ? 1 : 0) + (maxPrice < maxProductPrice ? 1 : 0) + (q.trim() ? 1 : 0);
 
   function reset() {
     setQ("");
     setGame("All");
-    setMaxPrice(MAX);
+    setMaxPrice(maxProductPrice);
   }
 
   return (
@@ -159,7 +163,7 @@ export function BrowseClient({
                 <input
                   type="range"
                   min={1}
-                  max={MAX}
+                  max={maxProductPrice}
                   step={1}
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
