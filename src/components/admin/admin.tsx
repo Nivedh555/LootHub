@@ -151,6 +151,7 @@ function Dashboard({
   const [serverError, setServerError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [refreshingOrders, setRefreshingOrders] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -193,6 +194,31 @@ function Dashboard({
     return false;
   }
 
+  function startEdit(product: Product) {
+    setEditingId(product.id);
+    setForm({
+      title: product.title,
+      game: product.game,
+      price: String(product.price),
+      rarity: product.rarity ?? "",
+      stock: String(product.stock),
+      description: product.description,
+      tags: product.tags.join(", "),
+      image: null,
+    });
+    setImagePreview(product.image ?? null);
+    setErrors({});
+    setServerError(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm({ ...empty });
+    setImagePreview(null);
+    setErrors({});
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setServerError(null);
@@ -209,19 +235,34 @@ function Dashboard({
       data.append("tags", form.tags.trim());
       if (form.image) data.append("image", form.image);
 
-      const res = await fetch("/api/products", { method: "POST", body: data });
-      if (await handleAuthFailure(res)) return;
-      const json = await res.json();
-      if (!res.ok) {
-        setServerError(json?.error ?? "Upload failed.");
-        return;
+      if (editingId) {
+        const res = await fetch(`/api/products/${editingId}`, { method: "PATCH", body: data });
+        if (await handleAuthFailure(res)) return;
+        const json = await res.json();
+        if (!res.ok) {
+          setServerError(json?.error ?? "Update failed.");
+          return;
+        }
+        const updated = json.product as Product;
+        setList((prev) => prev.map((p) => (p.id === editingId ? updated : p)));
+        setEditingId(null);
+        setForm({ ...empty });
+        setImagePreview(null);
+      } else {
+        const res = await fetch("/api/products", { method: "POST", body: data });
+        if (await handleAuthFailure(res)) return;
+        const json = await res.json();
+        if (!res.ok) {
+          setServerError(json?.error ?? "Upload failed.");
+          return;
+        }
+        const product = json.product as Product;
+        setList((prev) => [product, ...prev]);
+        setCreated(product);
+        setForm({ ...empty });
+        setImagePreview(null);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
-      const product = json.product as Product;
-      setList((prev) => [product, ...prev]);
-      setCreated(product);
-      setForm({ ...empty });
-      setImagePreview(null);
-      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       setServerError("Network error while uploading.");
     } finally {
@@ -457,10 +498,10 @@ function Dashboard({
 
       {tab === "products" && (
       <>
-      {/* New listing form */}
+      {/* New / Edit listing form */}
       <form onSubmit={handleSubmit} className="space-y-6" noValidate>
         <div className="rounded-2xl border border-border bg-card p-6">
-          <h2 className="mb-4 font-display text-lg">List a new item</h2>
+          <h2 className="mb-4 font-display text-lg">{editingId ? "Edit item" : "List a new item"}</h2>
           <div className="grid gap-5">
             <Field label="Item title" htmlFor="title" error={errors.title}>
               <Input
@@ -585,13 +626,20 @@ function Dashboard({
           )}
         </div>
 
-        <Button type="submit" size="lg" disabled={submitting} className="w-full justify-center sm:w-auto">
-          {submitting ? (
-            <><Loader2 className="h-5 w-5 animate-spin" /> Publishing…</>
-          ) : (
-            <><PackageCheck className="h-5 w-5" /> Publish item</>
+        <div className="flex flex-wrap gap-3">
+          <Button type="submit" size="lg" disabled={submitting} className="w-full justify-center sm:w-auto">
+            {submitting ? (
+              <><Loader2 className="h-5 w-5 animate-spin" /> {editingId ? "Saving…" : "Publishing…"}</>
+            ) : (
+              <><PackageCheck className="h-5 w-5" /> {editingId ? "Save changes" : "Publish item"}</>
+            )}
+          </Button>
+          {editingId && (
+            <Button type="button" variant="outline" size="lg" onClick={cancelEdit}>
+              <X className="h-5 w-5" /> Cancel
+            </Button>
           )}
-        </Button>
+        </div>
       </form>
 
       {/* Listings */}
@@ -618,6 +666,9 @@ function Dashboard({
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => startEdit(p)}>
+                    Edit
+                  </Button>
                   <Link href={`/product/${p.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
                     <Eye className="h-4 w-4" /> View
                   </Link>
@@ -648,6 +699,7 @@ function AccountsTab() {
   const [form, setForm] = useState({ title: "", game: "", platform: "", price: "", stock: "1", description: "", tags: "", image: null as File | null });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/accounts")
@@ -667,6 +719,27 @@ function AccountsTab() {
     }
   }
 
+  function startEdit(account: GameAccount) {
+    setEditingId(account.id);
+    setForm({
+      title: account.title,
+      game: account.game,
+      platform: account.platform,
+      price: String(account.price),
+      stock: String(account.stock),
+      description: account.description,
+      tags: account.tags.join(", "),
+      image: null,
+    });
+    setImagePreview(account.image ?? null);
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm({ title: "", game: "", platform: "", price: "", stock: "1", description: "", tags: "", image: null });
+    setImagePreview(null);
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const price = Number(form.price);
@@ -682,12 +755,23 @@ function AccountsTab() {
     data.append("tags", form.tags);
     if (form.image) data.append("image", form.image);
     try {
-      const res = await fetch("/api/accounts", { method: "POST", body: data });
-      const json = await res.json();
-      if (res.ok) {
-        setAccounts((prev) => [json.account, ...prev]);
-        setForm({ title: "", game: "", platform: "", price: "", stock: "1", description: "", tags: "", image: null });
-        setImagePreview(null);
+      if (editingId) {
+        const res = await fetch(`/api/accounts/${editingId}`, { method: "PATCH", body: data });
+        const json = await res.json();
+        if (res.ok) {
+          setAccounts((prev) => prev.map((a) => (a.id === editingId ? json.account : a)));
+          setEditingId(null);
+          setForm({ title: "", game: "", platform: "", price: "", stock: "1", description: "", tags: "", image: null });
+          setImagePreview(null);
+        }
+      } else {
+        const res = await fetch("/api/accounts", { method: "POST", body: data });
+        const json = await res.json();
+        if (res.ok) {
+          setAccounts((prev) => [json.account, ...prev]);
+          setForm({ title: "", game: "", platform: "", price: "", stock: "1", description: "", tags: "", image: null });
+          setImagePreview(null);
+        }
       }
     } finally {
       setSubmitting(false);
@@ -704,7 +788,7 @@ function AccountsTab() {
     <div className="space-y-10">
       <form onSubmit={submit} className="space-y-6">
         <div className="rounded-2xl border border-border bg-card p-6">
-          <h2 className="mb-4 font-display text-lg">List a game account</h2>
+          <h2 className="mb-4 font-display text-lg">{editingId ? "Edit game account" : "List a game account"}</h2>
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Title" htmlFor="a-title">
               <Input id="a-title" value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="e.g. Minecraft Premium Java Account" />
@@ -740,9 +824,16 @@ function AccountsTab() {
             </Field>
           </div>
         </div>
-        <Button type="submit" size="lg" disabled={submitting} className="w-full justify-center sm:w-auto">
-          {submitting ? <><Loader2 className="h-5 w-5 animate-spin" /> Publishing…</> : <><PackageCheck className="h-5 w-5" /> Publish account</>}
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button type="submit" size="lg" disabled={submitting} className="w-full justify-center sm:w-auto">
+            {submitting ? <><Loader2 className="h-5 w-5 animate-spin" /> {editingId ? "Saving…" : "Publishing…"}</> : <><PackageCheck className="h-5 w-5" /> {editingId ? "Save changes" : "Publish account"}</>}
+          </Button>
+          {editingId && (
+            <Button type="button" variant="outline" size="lg" onClick={cancelEdit}>
+              <X className="h-5 w-5" /> Cancel
+            </Button>
+          )}
+        </div>
       </form>
 
       <section>
@@ -771,9 +862,14 @@ function AccountsTab() {
                     </p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" className="text-destructive shrink-0" onClick={() => removeOne(a.id)}>
-                  <Trash2 className="h-4 w-4" /> Remove
-                </Button>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => startEdit(a)}>
+                    Edit
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-destructive" onClick={() => removeOne(a.id)}>
+                    <Trash2 className="h-4 w-4" /> Remove
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
