@@ -24,6 +24,20 @@ function normalizeGame(g: string | null): string {
   return match || trimmed || "All";
 }
 
+function gameMatches(productGame: string, filterGame: string): boolean {
+  if (filterGame === "All") return true;
+  const a = (productGame ?? "").trim().toLowerCase();
+  const b = filterGame.trim().toLowerCase();
+  if (a === b) return true;
+  // resolve both against known game names for fuzzy matching
+  const knownA = games.find((g) => g.toLowerCase() === a);
+  const knownB = games.find((g) => g.toLowerCase() === b);
+  if (knownA && knownB) return knownA === knownB;
+  if (knownA) return knownA.toLowerCase() === b;
+  if (knownB) return a === knownB.toLowerCase();
+  return false;
+}
+
 export function BrowseClient({
   products,
   initialQ = "",
@@ -46,15 +60,14 @@ export function BrowseClient({
 
   const [q, setQ] = useState(initialQ);
   const [game, setGame] = useState<string>(initialGameResolved);
-  const [maxPrice, setMaxPrice] = useState<number>(maxProductPrice);
+  const [maxPrice, setMaxPrice] = useState<number | null>(null);
   const [sort, setSort] = useState<Sort>("featured");
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
-    const activeGame = game.trim();
     let list = products.filter((p) => {
-      if (activeGame !== "All" && p.game.trim() !== activeGame) return false;
-      if (p.price > maxPrice) return false;
+      if (!gameMatches(p.game, game)) return false;
+      if (maxPrice != null && p.price > maxPrice) return false;
       if (!query) return true;
       return (
         p.title.toLowerCase().includes(query) ||
@@ -85,12 +98,12 @@ export function BrowseClient({
   }, [products, q, game, maxPrice, sort]);
 
   const activeCount =
-    (game !== "All" ? 1 : 0) + (maxPrice < maxProductPrice ? 1 : 0) + (q.trim() ? 1 : 0);
+    (game !== "All" ? 1 : 0) + (maxPrice != null ? 1 : 0) + (q.trim() ? 1 : 0);
 
   function reset() {
     setQ("");
     setGame("All");
-    setMaxPrice(maxProductPrice);
+    setMaxPrice(null);
   }
 
   return (
@@ -158,14 +171,14 @@ export function BrowseClient({
               <div>
                 <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <span>Max price</span>
-                  <span className="text-foreground">{formatPrice(maxPrice)}</span>
+                  <span className="text-foreground">{maxPrice == null ? "Any" : formatPrice(maxPrice)}</span>
                 </div>
                 <input
                   type="range"
                   min={1}
                   max={maxProductPrice}
                   step={1}
-                  value={maxPrice}
+                  value={maxPrice ?? maxProductPrice}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
                   className="w-full accent-primary"
                   aria-label="Maximum price"
