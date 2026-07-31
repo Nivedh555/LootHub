@@ -645,7 +645,8 @@ function Dashboard({
 
 function AccountsTab() {
   const [accounts, setAccounts] = useState<GameAccount[]>([]);
-  const [form, setForm] = useState({ title: "", game: "", platform: "", price: "", stock: "1", description: "", tags: "" });
+  const [form, setForm] = useState({ title: "", game: "", platform: "", price: "", stock: "1", description: "", tags: "", image: null as File | null });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -654,6 +655,17 @@ function AccountsTab() {
       .then((data) => setAccounts(data.accounts ?? []))
       .catch(() => setAccounts([]));
   }, []);
+
+  function onAccountFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    setForm((f) => ({ ...f, image: file }));
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setImagePreview(url);
+    } else {
+      setImagePreview(null);
+    }
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -668,12 +680,14 @@ function AccountsTab() {
     data.append("stock", form.stock);
     data.append("description", form.description.trim());
     data.append("tags", form.tags);
+    if (form.image) data.append("image", form.image);
     try {
       const res = await fetch("/api/accounts", { method: "POST", body: data });
       const json = await res.json();
       if (res.ok) {
         setAccounts((prev) => [json.account, ...prev]);
-        setForm({ title: "", game: "", platform: "", price: "", stock: "1", description: "", tags: "" });
+        setForm({ title: "", game: "", platform: "", price: "", stock: "1", description: "", tags: "", image: null });
+        setImagePreview(null);
       }
     } finally {
       setSubmitting(false);
@@ -715,6 +729,15 @@ function AccountsTab() {
             <Field label="Tags (comma separated)" htmlFor="a-tags">
               <Input id="a-tags" value={form.tags} onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))} placeholder="full-access, email-changeable, premium" />
             </Field>
+            <Field label="Cover image" htmlFor="a-image">
+              <input id="a-image" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={onAccountFile} className="block w-full text-sm file:mr-4 file:rounded-xl file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary-foreground hover:file:bg-primary/90" />
+              {imagePreview && (
+                <div className="mt-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={imagePreview} alt="Preview" className="h-32 w-auto rounded-xl border border-border object-cover" />
+                </div>
+              )}
+            </Field>
           </div>
         </div>
         <Button type="submit" size="lg" disabled={submitting} className="w-full justify-center sm:w-auto">
@@ -732,11 +755,21 @@ function AccountsTab() {
           <div className="overflow-hidden rounded-2xl border border-border">
             {accounts.map((a) => (
               <div key={a.id} className="flex items-center justify-between gap-4 border-b border-border p-4 last:border-b-0">
-                <div className="min-w-0">
-                  <p className="truncate font-medium">{a.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {a.game} · {a.platform} · {formatPrice(a.price)} · {a.stock} available
-                  </p>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
+                    {a.image ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img src={a.image} alt={a.title} className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">No img</span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{a.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {a.game} · {a.platform} · {formatPrice(a.price)} · {a.stock} available
+                    </p>
+                  </div>
                 </div>
                 <Button variant="ghost" size="sm" className="text-destructive shrink-0" onClick={() => removeOne(a.id)}>
                   <Trash2 className="h-4 w-4" /> Remove

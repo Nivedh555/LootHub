@@ -29,6 +29,7 @@ import { discord } from "@/config/site";
 import { games, gameMeta } from "@/config/games";
 import { getAllProducts, getAllAccounts } from "@/lib/server-store";
 import { GameAccountsGrid } from "@/components/game-accounts-grid";
+import { FeaturedAccountsCarousel } from "@/components/home/featured-accounts-carousel";
 
 export const dynamic = "force-dynamic";
 
@@ -208,6 +209,16 @@ export default async function HomePage() {
           })}
         </RevealGroup>
       </section>
+
+      {/* Featured Game Accounts */}
+      {accounts.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+          <SectionHeading eyebrow="Featured" title="Hot game accounts" />
+          <div className="mt-6">
+            <FeaturedAccountsCarousel accounts={accounts} />
+          </div>
+        </section>
+      )}
 
       {/* Game Accounts */}
       <section id="accounts" className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
