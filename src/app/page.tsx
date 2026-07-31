@@ -29,7 +29,6 @@ import { discord } from "@/config/site";
 import { games, gameMeta } from "@/config/games";
 import { getAllProducts, getAllAccounts } from "@/lib/server-store";
 import { GameAccountsGrid } from "@/components/game-accounts-grid";
-import { FeaturedAccountsCarousel } from "@/components/home/featured-accounts-carousel";
 
 export const dynamic = "force-dynamic";
 
@@ -97,16 +96,20 @@ export default async function HomePage() {
                 <a href="#shop" className={buttonVariants({ variant: "primary", size: "lg" })}>
                   Shop items <ArrowRight className="h-4 w-4" />
                 </a>
+                <Link href="/accounts" className={buttonVariants({ variant: "outline", size: "lg" })}>
+                  Game accounts <ArrowRight className="h-4 w-4" />
+                </Link>
                 <DiscordButton size="lg" />
               </div>
             </Reveal>
             {/* stat strip */}
             <Reveal variant="rise" inView delay={0.22}>
-              <div className="mt-6 grid max-w-md grid-cols-3 divide-x divide-border rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md">
-                <Stat value={all.length} label="Items listed" />
-                <Stat value={totalStock} label="In stock" />
-                <Stat value={games.length} label="Games" />
-              </div>
+                <div className="mt-6 grid max-w-md grid-cols-4 divide-x divide-border rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md">
+                  <Stat value={all.length} label="Items listed" />
+                  <Stat value={totalStock} label="In stock" />
+                  <Stat value={accounts.length} label="Accounts" />
+                  <Stat value={games.length} label="Games" />
+                </div>
             </Reveal>
           </div>
           <div className="hidden justify-center lg:flex">
@@ -209,16 +212,6 @@ export default async function HomePage() {
           })}
         </RevealGroup>
       </section>
-
-      {/* Featured Game Accounts */}
-      {accounts.length > 0 && (
-        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-          <SectionHeading eyebrow="Featured" title="Hot game accounts" />
-          <div className="mt-6">
-            <FeaturedAccountsCarousel accounts={accounts} />
-          </div>
-        </section>
-      )}
 
       {/* Game Accounts */}
       <section id="accounts" className="mx-auto max-w-7xl px-4 py-10 sm:px-6">

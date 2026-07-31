@@ -6,6 +6,7 @@ export const site = {
   email: "support@loothub.gg",
   nav: [
     { label: "Browse", href: "/browse" },
+    { label: "Accounts", href: "/accounts" },
     { label: "Shop", href: "/#shop" },
     { label: "Games", href: "/#games" },
     { label: "How it works", href: "/#how" },
