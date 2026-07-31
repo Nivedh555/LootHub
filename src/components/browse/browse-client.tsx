@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 import { GameIcon } from "@/components/game-icon";
@@ -15,6 +16,15 @@ import type { Game, Product } from "@/lib/types";
 type Sort = "featured" | "price-asc" | "price-desc" | "rating" | "az";
 const MAX = 100;
 
+function normalizeGame(g: string | null): string {
+  if (!g) return "All";
+  const trimmed = decodeURIComponent(g).trim();
+  const match = games.find(
+    (game) => game.toLowerCase() === trimmed.toLowerCase()
+  );
+  return match || trimmed || "All";
+}
+
 export function BrowseClient({
   products,
   initialQ = "",
@@ -24,15 +34,22 @@ export function BrowseClient({
   initialQ?: string;
   initialGame?: string;
 }) {
+  const searchParams = useSearchParams();
+  const urlGame = searchParams.get("game");
+
+  // Prefer URL game param over server initialGame to handle any SSR/hydration mismatch
+  const initialGameResolved = normalizeGame(urlGame || initialGame || "");
+
   const [q, setQ] = useState(initialQ);
-  const [game, setGame] = useState<string>(initialGame || "All");
+  const [game, setGame] = useState<string>(initialGameResolved);
   const [maxPrice, setMaxPrice] = useState<number>(MAX);
   const [sort, setSort] = useState<Sort>("featured");
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
+    const activeGame = game.trim();
     let list = products.filter((p) => {
-      if (game !== "All" && p.game !== game) return false;
+      if (activeGame !== "All" && p.game.trim() !== activeGame) return false;
       if (p.price > maxPrice) return false;
       if (!query) return true;
       return (
