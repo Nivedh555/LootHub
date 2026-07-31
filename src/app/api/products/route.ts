@@ -72,8 +72,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unknown game." }, { status: 400 });
   }
   const price = Number(priceRaw);
-  if (Number.isNaN(price) || price < 0.5) {
-    return NextResponse.json({ error: "Price must be at least $0.50." }, { status: 400 });
+  if (Number.isNaN(price) || price < 0.5 || price > 2000) {
+    return NextResponse.json({ error: "Price must be between $0.50 and $2,000." }, { status: 400 });
   }
   const stock = Math.max(1, Math.floor(Number(stockRaw) || 1));
   if (!description) {
