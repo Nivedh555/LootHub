@@ -172,8 +172,8 @@ function Dashboard({
     if (!form.title.trim()) next.title = "Add an item title.";
     if (!form.description.trim()) next.description = "Add a description.";
     const priceNum = Number(form.price);
-    if (!form.price || Number.isNaN(priceNum) || priceNum < 0.5 || priceNum > 2000) {
-      next.price = "Price must be between $0.50 and $2,000.";
+    if (!form.price || Number.isNaN(priceNum) || priceNum < 0.01 || priceNum > 2000) {
+      next.price = "Price must be between $0.01 and $2,000.";
     }
     const stockNum = Number(form.stock);
     if (!form.stock || Number.isNaN(stockNum) || stockNum < 1) {
@@ -470,7 +470,7 @@ function Dashboard({
                 <Input
                   id="price"
                   type="number"
-                  min={0.5}
+                  min={0.01}
                   max={2000}
                   step={0.01}
                   value={form.price}

@@ -59,8 +59,8 @@ export async function PATCH(
 
   if ("price" in raw) {
     const price = Number(raw.price);
-    if (Number.isNaN(price) || price < 0.5 || price > 2000) {
-      return NextResponse.json({ error: "Price must be between $0.50 and $2,000." }, { status: 400 });
+    if (Number.isNaN(price) || price < 0.01 || price > 2000) {
+      return NextResponse.json({ error: "Price must be between $0.01 and $2,000." }, { status: 400 });
     }
     patch.price = price;
   }
