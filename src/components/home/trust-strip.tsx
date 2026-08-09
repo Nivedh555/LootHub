@@ -19,10 +19,10 @@ export function TrustStrip() {
     <div className="section-divider" aria-hidden>
       <div
         ref={ref}
-        className="mx-auto flex max-w-7xl items-center justify-center gap-0 overflow-x-auto px-4 py-5 sm:px-6"
+        className="mx-auto flex max-w-7xl items-center justify-center overflow-x-auto px-4 py-5 sm:px-6"
       >
         {items.map((item, i) => (
-          <div key={item.label}>
+          <div key={item.label} className="flex items-center">
             <div
               data-reveal
               className="flex items-center gap-2.5 whitespace-nowrap px-6 py-2 text-muted-foreground/70"
@@ -33,7 +33,7 @@ export function TrustStrip() {
               </span>
             </div>
             {i < items.length - 1 && (
-              <span className="inline-block h-4 w-px bg-border/60 mx-0 align-middle" aria-hidden />
+              <span className="h-4 w-px bg-border/60" aria-hidden />
             )}
           </div>
         ))}
