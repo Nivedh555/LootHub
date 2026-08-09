@@ -3,14 +3,14 @@ import type { Product } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const palettes: [string, string][] = [
-  ["#7c3aed", "#4c1d95"],
-  ["#a78bfa", "#7c3aed"],
+  ["#10b981", "#064e3b"],
+  ["#34d399", "#059669"],
   ["#f59e0b", "#dc2626"],
-  ["#8b5cf6", "#ec4899"],
-  ["#6d28d9", "#a78bfa"],
-  ["#ec4899", "#7c3aed"],
+  ["#6ee7b7", "#0d9488"],
+  ["#059669", "#6ee7b7"],
+  ["#ec4899", "#10b981"],
   ["#f43f5e", "#f59e0b"],
-  ["#c4b5fd", "#6d28d9"],
+  ["#a7f3d0", "#10b981"],
 ];
 
 function hash(str: string): number {
@@ -126,7 +126,7 @@ export function ProductCover({
             y="284"
             fontFamily="'Chakra Petch', sans-serif"
             fontSize="12"
-            fill="#a78bfa"
+            fill="#6ee7b7"
           >
             {product.rarity}
           </text>

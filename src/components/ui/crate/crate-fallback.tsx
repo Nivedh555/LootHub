@@ -20,7 +20,7 @@ export function CrateFallback({ size = 330, fill = false }: { size?: number; fil
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(circle at 50% 60%, rgba(124,58,237,0.30), transparent 55%)",
+            "radial-gradient(circle at 50% 60%, rgba(16,185,129,0.25), transparent 55%)",
         }}
       />
       {/* Simple crate silhouette using inline SVG (deterministic) */}
@@ -34,8 +34,8 @@ export function CrateFallback({ size = 330, fill = false }: { size?: number; fil
       >
         <rect x="10" y="40" width="100" height="50" rx="4" fill="#2e2245" />
         <rect x="8" y="38" width="104" height="8" rx="2" fill="#3e2f5e" />
-        <rect x="55" y="48" width="10" height="14" rx="2" fill="#7c3aed" />
-        <circle cx="60" cy="55" r="3" fill="#a78bfa" />
+        <rect x="55" y="48" width="10" height="14" rx="2" fill="#10b981" />
+        <circle cx="60" cy="55" r="3" fill="#6ee7b7" />
       </svg>
     </div>
   );

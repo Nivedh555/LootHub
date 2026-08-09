@@ -29,7 +29,7 @@ export function FinalCTA() {
       >
         {/* Ambient */}
         <div
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(109,40,217,0.12),transparent_70%)]"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.1),transparent_70%)]"
           aria-hidden
         />
         <div className="absolute inset-0 bg-grid opacity-60" aria-hidden />

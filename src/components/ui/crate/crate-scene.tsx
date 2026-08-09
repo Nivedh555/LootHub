@@ -207,8 +207,8 @@ function CrateContent({ reduced }: { reduced: boolean }) {
     <group>
       {/* Lighting */}
       <ambientLight intensity={0.35} color="#b9a9d6" />
-      <directionalLight position={[3, 4, 2]} intensity={1.2} color="#c4b5fd" />
-      <pointLight position={[-2, 2, -3]} intensity={0.6} color="#a78bfa" />
+      <directionalLight position={[3, 4, 2]} intensity={1.2} color="#a7f3d0" />
+      <pointLight position={[-2, 2, -3]} intensity={0.6} color="#6ee7b7" />
 
       {/* Body + Lid group */}
       <group ref={bodyGroup}>
@@ -220,27 +220,27 @@ function CrateContent({ reduced }: { reduced: boolean }) {
         {/* Trim strips */}
         <mesh position={[0, 0, 0.46]}>
           <boxGeometry args={[1.22, 0.72, 0.02]} />
-          <meshStandardMaterial color="#7c3aed" roughness={0.3} metalness={0.8} />
+          <meshStandardMaterial color="#10b981" roughness={0.3} metalness={0.8} />
         </mesh>
         <mesh position={[0, 0, -0.46]}>
           <boxGeometry args={[1.22, 0.72, 0.02]} />
-          <meshStandardMaterial color="#7c3aed" roughness={0.3} metalness={0.8} />
+          <meshStandardMaterial color="#10b981" roughness={0.3} metalness={0.8} />
         </mesh>
         <mesh position={[0.61, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
           <boxGeometry args={[0.92, 0.72, 0.02]} />
-          <meshStandardMaterial color="#7c3aed" roughness={0.3} metalness={0.8} />
+          <meshStandardMaterial color="#10b981" roughness={0.3} metalness={0.8} />
         </mesh>
         <mesh position={[-0.61, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
           <boxGeometry args={[0.92, 0.72, 0.02]} />
-          <meshStandardMaterial color="#7c3aed" roughness={0.3} metalness={0.8} />
+          <meshStandardMaterial color="#10b981" roughness={0.3} metalness={0.8} />
         </mesh>
 
         {/* Lock body */}
         <mesh ref={lockMesh} position={[0, 0.08, 0.48]}>
           <boxGeometry args={[0.18, 0.22, 0.08]} />
           <meshStandardMaterial
-            color="#7c3aed"
-            emissive="#7c3aed"
+            color="#10b981"
+            emissive="#10b981"
             emissiveIntensity={0}
             roughness={0.2}
             metalness={0.9}
@@ -251,7 +251,7 @@ function CrateContent({ reduced }: { reduced: boolean }) {
           <mesh ref={shackleMesh}>
             <torusGeometry args={[0.07, 0.015, 8, 16, Math.PI]} />
             <meshStandardMaterial
-              color="#a78bfa"
+              color="#6ee7b7"
               roughness={0.2}
               metalness={0.9}
               transparent
@@ -267,11 +267,11 @@ function CrateContent({ reduced }: { reduced: boolean }) {
             </RoundedBox>
             <mesh position={[0, 0, 0.47]}>
               <boxGeometry args={[1.27, 0.24, 0.02]} />
-              <meshStandardMaterial color="#7c3aed" roughness={0.3} metalness={0.8} />
+              <meshStandardMaterial color="#10b981" roughness={0.3} metalness={0.8} />
             </mesh>
             <mesh position={[0, 0, -0.47]}>
               <boxGeometry args={[1.27, 0.24, 0.02]} />
-              <meshStandardMaterial color="#7c3aed" roughness={0.3} metalness={0.8} />
+              <meshStandardMaterial color="#10b981" roughness={0.3} metalness={0.8} />
             </mesh>
           </group>
         </group>
@@ -289,7 +289,7 @@ function CrateContent({ reduced }: { reduced: boolean }) {
         <mesh ref={coneMesh} position={[0, 1.05, 0]} visible={false}>
           <coneGeometry args={[0.55, 1.5, 32, 1, true]} />
           <meshBasicMaterial
-            color="#c4b5fd"
+            color="#a7f3d0"
             transparent
             opacity={0}
             depthWrite={false}
@@ -303,8 +303,8 @@ function CrateContent({ reduced }: { reduced: boolean }) {
           <mesh ref={gemMesh}>
             <icosahedronGeometry args={[0.18, 1]} />
             <meshStandardMaterial
-              color="#7c3aed"
-              emissive="#a78bfa"
+              color="#10b981"
+              emissive="#6ee7b7"
               emissiveIntensity={2}
               roughness={0.1}
               metalness={0.1}
@@ -316,7 +316,7 @@ function CrateContent({ reduced }: { reduced: boolean }) {
           <mesh ref={gemGlow}>
             <planeGeometry args={[0.8, 0.8]} />
             <meshBasicMaterial
-              color="#a78bfa"
+              color="#6ee7b7"
               transparent
               opacity={0}
               depthWrite={false}
@@ -340,7 +340,7 @@ function CrateContent({ reduced }: { reduced: boolean }) {
       </group>
 
       {/* Ambient sparkles */}
-      <Sparkles count={50} scale={[2.6, 2.2, 2.6]} size={2} speed={0.4} opacity={0.5} color="#c4b5fd" />
+      <Sparkles count={50} scale={[2.6, 2.2, 2.6]} size={2} speed={0.4} opacity={0.5} color="#a7f3d0" />
 
       {/* Ground shadow */}
       <ContactShadow />

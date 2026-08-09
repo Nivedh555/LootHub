@@ -151,7 +151,7 @@ export function AccountView({
                     className={cn(
                       "flex flex-col gap-1 rounded-2xl border p-4 text-left transition-all",
                       a.id === assetId
-                        ? "border-primary bg-primary/10 shadow-[0_0_0_1px_rgba(124,58,237,0.5)]"
+                        ? "border-primary bg-primary/10 shadow-[0_0_0_1px_rgba(16,185,129,0.5)]"
                         : "border-border bg-card hover:border-primary/50",
                     )}
                   >

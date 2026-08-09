@@ -12,7 +12,7 @@ export function SpotlightCard({
   as: Tag = "div",
   children,
   className,
-  spotlightColor = "rgba(124, 58, 237, 0.28)",
+  spotlightColor = "rgba(16, 185, 129, 0.25)",
   borderColor = "rgba(167, 139, 250, 0.85)",
   ...props
 }: React.ComponentProps<"div"> & {

@@ -385,7 +385,7 @@ function Dashboard({
             )}
           >
             {tab === t && (
-              <span className="absolute inset-0 rounded-lg bg-primary shadow-[0_0_18px_-4px_rgba(124,58,237,0.8)]" />
+              <span className="absolute inset-0 rounded-lg bg-primary shadow-[0_0_18px_-4px_rgba(16,185,129,0.7)]" />
             )}
             <span className="relative z-10 capitalize">{t}</span>
           </button>
