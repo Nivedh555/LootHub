@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { CartProvider } from "@/lib/cart-context";
+import { LenisProvider } from "@/lib/lenis-provider";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
 import { site } from "@/config/site";
@@ -23,16 +24,18 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="h-full scroll-smooth">
+    <html lang="en" className="h-full">
       <body className="flex min-h-full flex-col bg-background text-foreground antialiased">
-        <CartProvider>
-          <Navbar />
-          <main id="main" className="flex-1 pt-[4.5rem]">
-            {children}
-          </main>
-          <Footer />
-          <SpeedInsights />
-        </CartProvider>
+        <LenisProvider>
+          <CartProvider>
+            <Navbar />
+            <main id="main" className="flex-1 pt-[4.5rem]">
+              {children}
+            </main>
+            <Footer />
+            <SpeedInsights />
+          </CartProvider>
+        </LenisProvider>
       </body>
     </html>
   );
