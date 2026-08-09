@@ -6,10 +6,10 @@ type Size = "sm" | "md" | "lg" | "icon";
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_rgba(16,185,129,0.55),0_8px_24px_-12px_rgba(16,185,129,0.7)] hover:shadow-[0_0_0_1px_rgba(52,211,153,0.7),0_0_28px_-4px_rgba(16,185,129,0.6)] hover:-translate-y-0.5",
-
+    "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_rgba(124,58,237,0.55),0_8px_24px_-12px_rgba(124,58,237,0.8)] hover:shadow-[0_0_0_1px_rgba(167,139,250,0.7),0_0_28px_-4px_rgba(124,58,237,0.7)] hover:-translate-y-0.5",
+  // accent is an alias of primary now — purple is the only action color
   accent:
-    "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_rgba(16,185,129,0.55),0_8px_24px_-12px_rgba(16,185,129,0.7)] hover:shadow-[0_0_0_1px_rgba(52,211,153,0.7),0_0_28px_-4px_rgba(16,185,129,0.6)] hover:-translate-y-0.5",
+    "bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_0_1px_rgba(124,58,237,0.55),0_8px_24px_-12px_rgba(124,58,237,0.8)] hover:shadow-[0_0_0_1px_rgba(167,139,250,0.7),0_0_28px_-4px_rgba(124,58,237,0.7)] hover:-translate-y-0.5",
   secondary:
     "border border-white/10 bg-white/5 text-foreground backdrop-blur-md hover:bg-white/10 hover:border-primary/40 hover:-translate-y-0.5",
   glass:

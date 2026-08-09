@@ -57,7 +57,7 @@ export function FeaturedAccountsCarousel({ accounts }: { accounts: GameAccount[]
               {tab === t.key && (
                 <motion.span
                   layoutId="featured-account-tab"
-                  className="absolute inset-0 rounded-lg bg-primary shadow-[0_0_18px_-4px_rgba(16,185,129,0.7)]"
+                  className="absolute inset-0 rounded-lg bg-primary shadow-[0_0_18px_-4px_rgba(124,58,237,0.8)]"
                   transition={reduced ? { duration: 0 } : { type: "spring", stiffness: 400, damping: 34 }}
                 />
               )}

@@ -1,4 +1,5 @@
 import { AutoRefresh } from "@/components/auto-refresh";
+import { MinecraftBg } from "@/components/minecraft-bg";
 import { Hero } from "@/components/home/hero";
 import { TrustStrip } from "@/components/home/trust-strip";
 import { TrendingProducts } from "@/components/home/trending-products";
@@ -56,6 +57,7 @@ export default async function HomePage() {
   return (
     <>
       <AutoRefresh />
+      <MinecraftBg />
 
       {/* 1. Hero */}
       <Hero featuredProduct={featuredProduct} totalItems={all.length} />
