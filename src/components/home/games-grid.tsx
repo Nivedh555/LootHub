@@ -27,9 +27,15 @@ export function GamesGrid({ products }: GamesGridProps) {
   return (
     <section
       id="games"
-      className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
+      className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
       aria-labelledby="games-heading"
     >
+      {/* Section number backdrop */}
+      <span className="pointer-events-none absolute -right-4 -top-6 select-none font-display text-[10rem] font-black leading-none text-foreground/[0.02] sm:text-[13rem]" aria-hidden>
+        02
+      </span>
+
+      <div className="relative">
       <div ref={headRef} className="mb-10">
         <p className="eyebrow mb-3">Browse by Game</p>
         <h2
@@ -89,6 +95,7 @@ export function GamesGrid({ products }: GamesGridProps) {
             </div>
           );
         })}
+      </div>
       </div>
     </section>
   );

@@ -29,36 +29,52 @@ export function TrendingProducts({ products }: TrendingProductsProps) {
   return (
     <section
       id="shop"
-      className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
+      className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
       aria-labelledby="trending-heading"
     >
-      <div ref={headRef} className="mb-10 flex items-end justify-between gap-4">
-        <div>
-          <p className="eyebrow mb-3">Marketplace</p>
-          <h2
-            id="trending-heading"
-            className="font-display text-3xl font-black leading-tight text-foreground sm:text-4xl"
-          >
-            Trending Loot
-          </h2>
-        </div>
-        <Link
-          href="/browse"
-          className="inline-flex shrink-0 items-center gap-1.5 font-display text-xs font-semibold uppercase tracking-widest text-primary/80 transition-colors hover:text-primary"
-        >
-          View all <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </div>
+      {/* Section number backdrop — Fuel-style */}
+      <span className="pointer-events-none absolute -left-8 -top-8 select-none font-display text-[11rem] font-black leading-none text-foreground/[0.03] sm:text-[14rem]" aria-hidden>
+        01
+      </span>
 
-      <div
-        ref={gridRef}
-        className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:gap-5"
-      >
-        {featured.map((product) => (
-          <div key={product.id} data-reveal>
-            <ProductCard product={product} />
+      <div className="relative">
+        <div ref={headRef} className="mb-10 flex items-end justify-between gap-4">
+          <div>
+            <p className="eyebrow mb-3">Marketplace</p>
+            <h2
+              id="trending-heading"
+              className="font-display text-3xl font-black leading-tight text-foreground sm:text-4xl"
+            >
+              Trending Loot
+            </h2>
           </div>
-        ))}
+          <div className="flex items-center gap-4">
+            {/* ClearPath-style trust badge */}
+            <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 backdrop-blur-sm sm:flex">
+              <span className="font-display text-sm font-bold text-success">✦</span>
+              <span className="text-[11px] font-semibold text-muted-foreground">
+                Trusted by <span className="text-foreground">{products.length}+</span> buyers
+              </span>
+            </div>
+            <Link
+              href="/browse"
+              className="inline-flex shrink-0 items-center gap-1.5 font-display text-xs font-semibold uppercase tracking-widest text-primary/80 transition-colors hover:text-primary"
+            >
+              View all <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+
+        <div
+          ref={gridRef}
+          className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:gap-5"
+        >
+          {featured.map((product) => (
+            <div key={product.id} data-reveal>
+              <ProductCard product={product} />
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

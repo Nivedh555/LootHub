@@ -143,14 +143,24 @@ export function Hero({ featuredProduct, totalItems }: HeroProps) {
               </a>
             </div>
 
-            {/* Stats strip */}
+            {/* Stats strip — ClearPath-style with trust badge */}
             <div
               ref={statsRef}
               className="mt-10 flex flex-wrap items-center gap-6"
             >
               <StatItem value={totalItems} label="Items listed" />
               <span className="h-8 w-px bg-border" aria-hidden />
-              <StatItem value={6} label="Games" />
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-1">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-primary/20 text-[10px] font-bold text-primary">✦</span>
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-success/20 text-[10px] font-bold text-success">✓</span>
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-background bg-accent/20 text-[10px] font-bold text-accent">♥</span>
+                </div>
+                <div>
+                  <p className="font-display text-lg font-black text-foreground leading-none">Trusted</p>
+                  <p className="text-[11px] uppercase tracking-widest text-muted-foreground">by gamers</p>
+                </div>
+              </div>
               <span className="h-8 w-px bg-border" aria-hidden />
               <StatItem value="24/7" label="Discord support" isString />
             </div>

@@ -31,6 +31,10 @@ export function FeaturedDrop({ product }: { product: Product }) {
         className="pointer-events-none absolute -left-40 top-0 h-[500px] w-[500px] rounded-full bg-primary/10 blur-[100px]"
         aria-hidden
       />
+      {/* Section number */}
+      <span className="pointer-events-none absolute right-0 top-4 select-none font-display text-[10rem] font-black leading-none text-foreground/[0.02] sm:text-[14rem]" aria-hidden>
+        ★
+      </span>
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">

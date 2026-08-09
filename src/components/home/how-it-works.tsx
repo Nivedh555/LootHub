@@ -41,9 +41,15 @@ export function HowItWorks() {
   return (
     <section
       id="how"
-      className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
+      className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
       aria-labelledby="how-heading"
     >
+      {/* Section number backdrop */}
+      <span className="pointer-events-none absolute -left-6 top-0 select-none font-display text-[10rem] font-black leading-none text-foreground/[0.02] sm:text-[13rem]" aria-hidden>
+        03
+      </span>
+
+      <div className="relative">
       <div ref={headRef} className="mb-12 text-center">
         <p className="eyebrow mb-3">Process</p>
         <h2
@@ -85,6 +91,7 @@ export function HowItWorks() {
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
           </div>
         ))}
+      </div>
       </div>
     </section>
   );

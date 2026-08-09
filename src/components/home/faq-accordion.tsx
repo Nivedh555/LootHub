@@ -21,9 +21,15 @@ export function FaqAccordion({ items }: { items: FaqItem[] }) {
   return (
     <section
       id="faq"
-      className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
+      className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
       aria-labelledby="faq-heading"
     >
+      {/* Section number backdrop */}
+      <span className="pointer-events-none absolute -right-4 -top-6 select-none font-display text-[10rem] font-black leading-none text-foreground/[0.02] sm:text-[13rem]" aria-hidden>
+        05
+      </span>
+
+      <div className="relative">
       <div ref={headRef} className="mb-10 text-center">
         <p className="eyebrow mb-3">Support</p>
         <h2
@@ -62,6 +68,7 @@ export function FaqAccordion({ items }: { items: FaqItem[] }) {
             </div>
           </div>
         ))}
+      </div>
       </div>
     </section>
   );

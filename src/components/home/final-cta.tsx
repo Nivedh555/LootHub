@@ -14,9 +14,15 @@ export function FinalCTA() {
 
   return (
     <section
-      className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
+      className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20"
       aria-labelledby="final-cta-heading"
     >
+      {/* Section number backdrop */}
+      <span className="pointer-events-none absolute -left-4 bottom-0 select-none font-display text-[10rem] font-black leading-none text-foreground/[0.02] sm:text-[14rem]" aria-hidden>
+        ✦
+      </span>
+
+      <div className="relative">
       <div
         ref={ref}
         className="relative overflow-hidden rounded-3xl border border-border bg-card px-8 py-14 text-center sm:px-12 sm:py-20"
@@ -68,6 +74,7 @@ export function FinalCTA() {
             </a>
           </div>
         </div>
+      </div>
       </div>
     </section>
   );
